@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+    
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background-color: #ffffff;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+            overflow-y: auto;
+            height: 90vh;
+        }
+    
+        h1 {
+            color: #4A90E2;
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+    
+        p {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+    
+        input[type="text"],
+        input[type="number"] {
+            width: 90%;
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: #4A90E2;
+            outline: none;
+        }
+    
+        button {
+            background-color: #4A90E2;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+            width: 90%;
+            transition: background-color 0.3s;
+        }
+    
+        button:hover {
+            background-color: #357ABD;
+        }
+    
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    
+        .parent {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+    
+        .operator {
+            font-size: 24px;
+            align-self: center;
+            visibility: hidden;
+            color: #333;
+        }
+    
+        ::placeholder {
+            color: #888;
+            font-style: italic;
+        }
+    
+        #score,
+        #round {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+    
+        #game {
+            display: none;
+        }
+    
+        #restartBtn {
+            margin-top: 20px;
+            width: 90%;
+        }
+    
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+    
+            h1 {
+                font-size: 24px;
+            }
+    
+            input[type="text"],
+            input[type="number"] {
+                font-size: 14px;
+            }
+    
+            button {
+                font-size: 14px;
+                padding: 8px;
+            }
+    
+            .parent {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>    
+    
+    
+</head>
+<body>
+    <div id="app"></div>
+    <div class="container">
+        <h1>Math Game</h1>
+        <p>Enter your details to start the game</p>
+        <input type="text" id="name" placeholder="Name">
+        <input type="text" id="class" placeholder="Class">
+        <input type="text" id="section" placeholder="Section">
+        <button onclick="startGame()">Start Game</button>
+    
+        <div id="game" style="display:none;">
+            <p>Round: <span id="round">1</span> / 10</p>
+            <div class="parent">
+                <input type="number" id="num1" placeholder="Number 1">
+                <input type="number" id="num2" placeholder="Number 2">
+                <input type="number" id="result1" placeholder="Result 1">
+            </div>
+            <div class="parent">
+                <input type="number" id="num3" placeholder="Number 3">
+                <input type="number" id="num4" placeholder="Number 4">
+                <input type="number" id="result2" placeholder="Result 2">
+            </div>
+            <div class="parent">
+                <input type="number" id="result3" placeholder="Result 3">
+                <input type="number" id="result4" placeholder="Result 4">
+                <span id="operator" class="operator">+</span>
+            </div>
+            <button id="generateBtn" onclick="generateOperator()">Generate Operator</button>
+            <button id="checkBtn" onclick="checkResults()">Check</button>
+            <button id="restartBtn" onclick="restartGame()">Restart</button>
+            <p id="score">Score: 0</p>
+        </div>
+    </div>
+    
+
+<script>
+    let score = 0;
+    let round = 1;
+    const operators = ['+', '-', 'X', '÷'];
+    let operatorGenerated = false;
+
+    function startGame() {
+        const playerName = document.getElementById("name").value;
+        const playerClass = document.getElementById("class").value;
+        const playerSection = document.getElementById("section").value;
+        document.getElementById("restartBtn").disabled = true;
+
+        if (!playerName || !playerClass || !playerSection) {
+            alert("Please enter all details to start the game");
+            return;
+        }
+
+        // Store player data in localStorage
+        localStorage.setItem("currentPlayer", JSON.stringify({
+            name: playerName,
+            class: playerClass,
+            section: playerSection,
+            score: 0
+        }));
+
+        document.getElementById("game").style.display = "block";
+        operatorGenerated = false;
+        document.querySelector("button[onclick='startGame()']").disabled = true; // Disable start button after game starts
+    }
+
+    function generateOperator() {
+        if (operatorGenerated) return;
+
+        const randomOp1 = operators[Math.floor(Math.random() * operators.length)];
+        document.getElementById("operator").textContent = randomOp1;
+        document.getElementById("operator").style.visibility = "visible";
+        operatorGenerated = true;
+        document.getElementById("generateBtn").disabled = true;
+    }
+
+    function calculate(numA, numB, op) {
+        switch (op) {
+            case '+': return numA + numB;
+            case '-': return numA - numB;
+            case 'X': return numA * numB;
+            case '÷': return numB !== 0 ? numA / numB : NaN; // Handle division by zero
+            default: return 0;
+        }
+    }
+
+    function checkResults() {
+        const num1 = parseFloat(document.getElementById("num1").value);
+        const num2 = parseFloat(document.getElementById("num2").value);
+        const num3 = parseFloat(document.getElementById("num3").value);
+        const num4 = parseFloat(document.getElementById("num4").value);
+
+        const userResult1 = parseFloat(document.getElementById("result1").value);
+        const userResult2 = parseFloat(document.getElementById("result2").value);
+
+        const op1 = document.getElementById("operator").textContent;
+
+        const correctResult1 = calculate(num1, num2, op1);
+        const correctResult2 = calculate(num3, num4, op1);
+
+        if (userResult1 === correctResult1 && userResult2 === correctResult2) {
+            score++;
+            document.getElementById("score").textContent = "Score: " + score;
+
+            if (round < 10) {  // Allow up to 10 rounds
+                round++;
+                document.getElementById("round").textContent = round;
+                operatorGenerated = false;
+                document.getElementById("operator").style.visibility = "hidden";
+                document.getElementById("generateBtn").disabled = false;
+                document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
+            } else {
+                // End of game
+                alert("Game Over! Final Score: " + score);
+                savePlayerData();
+                document.getElementById("checkBtn").disabled = true;  // Disable check button after the game
+                document.getElementById("restartBtn").disabled = false; // Enable restart button
+            }
+        } else {
+            // Clear all inputs and go to the next round
+            document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
+            operatorGenerated = false;
+            document.getElementById("operator").style.visibility = "hidden";
+            document.getElementById("generateBtn").disabled = false;
+            round++;
+            document.getElementById("round").textContent = round;
+        }
+    }
+
+    // Function to restart the game
+    function restartGame() {
+        // Reset all game variables
+        score = 0;
+        round = 1;
+        document.getElementById("round").textContent = round;
+        document.getElementById("score").textContent = "Score: 0";
+
+        // Clear inputs and hide operator
+        document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
+        document.getElementById("operator").style.visibility = "hidden";
+        document.getElementById("generateBtn").disabled = false;
+
+        // Reset the game container to show name inputs
+        document.getElementById("game").style.display = "none";
+        document.getElementById("name").value = "";
+        document.getElementById("class").value = "";
+        document.getElementById("section").value = "";
+
+        // Re-enable start button
+        const startBtn = document.querySelector("button[onclick='startGame()']");
+        startBtn.disabled = false;
+
+        // Re-enable check button
+        document.getElementById("checkBtn").disabled = false;
+        document.getElementById("restartBtn").disabled = true; // Disable restart button after restarting
+    }
+
+    function savePlayerData() {
+    let currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+    if (!currentPlayer) return;
+
+    currentPlayer.score = score;
+
+    let playerData = JSON.parse(localStorage.getItem("playerData")) || [];
+    playerData.push(currentPlayer);
+    localStorage.setItem("playerData", JSON.stringify(playerData));
+
+    alert("Data Saved Successfully!");
+}
+</script>
+
+</body>
+</html>
