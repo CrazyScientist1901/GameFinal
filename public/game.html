@@ -243,7 +243,7 @@
             case '+': return numA + numB;
             case '-': return numA - numB;
             case 'X': return numA * numB;
-            case '÷': return numB !== 0 ? numA / numB : NaN; // Handle division by zero
+            case '÷': return numB !== 0 ? parseFloat((numA / numB).toFixed(2)) : NaN; // Format to 2 decimal places, Handle division by zero
             default: return 0;
         }
     }
