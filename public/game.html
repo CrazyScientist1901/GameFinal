@@ -196,11 +196,8 @@
         </div>
     </div>
 
-    <script>
+   <script>
         // Initialize Firebase
-        import { initializeApp } from 'firebase/app';
-        import { getDatabase, ref, set } from 'firebase/database';
-
         const firebaseConfig = {
             apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
             authDomain: "mathgame-d8afe.firebaseapp.com",
@@ -212,8 +209,8 @@
             measurementId: "G-DPJ79JZFQ1"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        const app = firebase.initializeApp(firebaseConfig); // Access Firebase via the global object
+        const db = firebase.database(app); // Access database via the global object
 
         let score = 0;
         let round = 1;
@@ -288,11 +285,11 @@
                 document.getElementById("score").textContent = "Score: " + score;
             }
 
-            if (round === 10) { 
+            if (round === 10) {
                 // End the game at round 10
                 alert("Game Over! Final Score: " + score);
                 savePlayerData();
-                document.getElementById("checkBtn").disabled = true;  
+                document.getElementById("checkBtn").disabled = true;
                 document.getElementById("generateBtn").disabled = true;
                 document.getElementById("restartBtn").disabled = false;
             } else {
@@ -308,8 +305,8 @@
         function savePlayerData() {
             const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
             if (currentPlayer) {
-                const playerRef = ref(db, 'players/' + currentPlayer.name); // Unique player ID
-                set(playerRef, {
+                const playerRef = firebase.database().ref('players/' + currentPlayer.name); // Access database ref via global firebase object
+                playerRef.set({
                     name: currentPlayer.name,
                     class: currentPlayer.class,
                     section: currentPlayer.section,
