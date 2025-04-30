@@ -286,6 +286,25 @@
             document.getElementById("restartBtn").disabled = false;
             operatorGenerated = false;
         }
+        function updatePlayerScore(score) {
+    const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+    if (currentPlayer) {
+        // Update the player's score in Firebase
+        const playerRef = firebase.database().ref('players/' + currentPlayer.name);
+        playerRef.set({
+            name: currentPlayer.name,
+            class: currentPlayer.class,
+            section: currentPlayer.section,
+            score: score
+        }).then(() => {
+            console.log('Player score updated');
+            viewLeaderboard(); // To refresh the leaderboard after each score update
+        }).catch((error) => {
+            console.error('Error updating player score:', error);
+        });
+    }
+}
+
     </script>
 </body>
 </html>
