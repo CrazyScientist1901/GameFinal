@@ -194,151 +194,171 @@
     </div>
 
 <script>
-// Firebase initialization
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-};
+    // Import Firebase SDK (make sure you've added Firebase SDK to your project)
+    // You can use this in a script tag or install via npm if using a build tool
 
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
 
-let score = 0;
-let round = 1;
-const operators = ['+', '-', 'X', '÷'];
-let operatorGenerated = false;
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-function startGame() {
-    const playerName = document.getElementById("name").value;
-    const playerClass = document.getElementById("class").value;
-    const playerSection = document.getElementById("section").value;
-    document.getElementById("restartBtn").disabled = true;
+    let score = 0;
+    let round = 1;
+    const operators = ['+', '-', 'X', '÷'];
+    let operatorGenerated = false;
 
-    if (!playerName || !playerClass || !playerSection) {
-        alert("Please enter all details to start the game");
-        return;
-    }
+    function startGame() {
+        const playerName = document.getElementById("name").value;
+        const playerClass = document.getElementById("class").value;
+        const playerSection = document.getElementById("section").value;
+        document.getElementById("restartBtn").disabled = true;
 
-    localStorage.setItem("currentPlayer", JSON.stringify({
-        name: playerName,
-        class: playerClass,
-        section: playerSection,
-        score: 0
-    }));
+        if (!playerName || !playerClass || !playerSection) {
+            alert("Please enter all details to start the game");
+            return;
+        }
 
-    document.getElementById("game").style.display = "block";
-    operatorGenerated = false;
-    document.querySelector("button[onclick='startGame()']").disabled = true;
-}
+        // Store player data in localStorage
+        localStorage.setItem("currentPlayer", JSON.stringify({
+            name: playerName,
+            class: playerClass,
+            section: playerSection,
+            score: 0
+        }));
 
-function generatePuzzle() {
-    if (operatorGenerated) return;
-    document.getElementById("num1").value = Math.floor(Math.random() * 100) + 1;
-    document.getElementById("num2").value = Math.floor(Math.random() * 100) + 1;
-    document.getElementById("num3").value = Math.floor(Math.random() * 100) + 1;
-    document.getElementById("num4").value = Math.floor(Math.random() * 100) + 1;
-    const randomOp1 = operators[Math.floor(Math.random() * operators.length)];
-    document.getElementById("operator").textContent = randomOp1;
-    document.getElementById("operator").style.visibility = "visible";
-    operatorGenerated = true;
-    document.getElementById("generateBtn").disabled = true;
-}
-
-function calculate(numA, numB, op) {
-    switch (op) {
-        case '+': return numA + numB;
-        case '-': return numA - numB;
-        case 'X': return numA * numB;
-        case '÷': return numB !== 0 ? parseFloat((numA / numB).toFixed(2)) : NaN;
-        default: return 0;
-    }
-}
-
-function checkResults() {
-    if (round > 10) return;
-
-    const num1 = parseFloat(document.getElementById("num1").value);
-    const num2 = parseFloat(document.getElementById("num2").value);
-    const num3 = parseFloat(document.getElementById("num3").value);
-    const num4 = parseFloat(document.getElementById("num4").value);
-
-    const userResult1 = parseFloat(document.getElementById("result1").value);
-    const userResult2 = parseFloat(document.getElementById("result2").value);
-
-    const op1 = document.getElementById("operator").textContent;
-
-    const correctResult1 = calculate(num1, num2, op1);
-    const correctResult2 = calculate(num3, num4, op1);
-
-    if (userResult1 === correctResult1 && userResult2 === correctResult2) {
-        score++;
-        document.getElementById("score").textContent = "Score: " + score;
-    }
-
-    if (round === 10) { 
-        alert("Game Over! Final Score: " + score);
-        savePlayerData();
-        document.getElementById("checkBtn").disabled = true;
-        document.getElementById("generateBtn").disabled = true;
-        document.getElementById("restartBtn").disabled = false;
-    } else {
-        round++;
-        document.getElementById("round").textContent = round;
+        document.getElementById("game").style.display = "block";
         operatorGenerated = false;
+        document.querySelector("button[onclick='startGame()']").disabled = true; // Disable start button after game starts
+    }
+
+    function generatePuzzle() {
+        if (operatorGenerated) return;
+        
+        document.getElementById("num1").value = Math.floor(Math.random() * 100) + 1;
+        document.getElementById("num2").value = Math.floor(Math.random() * 100) + 1;
+        document.getElementById("num3").value = Math.floor(Math.random() * 100) + 1;
+        document.getElementById("num4").value = Math.floor(Math.random() * 100) + 1;
+        
+        const randomOp1 = operators[Math.floor(Math.random() * operators.length)];
+        document.getElementById("operator").textContent = randomOp1;
+        document.getElementById("operator").style.visibility = "visible";
+        
+        operatorGenerated = true;
+        document.getElementById("generateBtn").disabled = true;
+    }
+
+    function calculate(numA, numB, op) {
+        switch (op) {
+            case '+': return numA + numB;
+            case '-': return numA - numB;
+            case 'X': return numA * numB;
+            case '÷': return numB !== 0 ? parseFloat((numA / numB).toFixed(2)) : NaN; // Handle division by zero
+            default: return 0;
+        }
+    }
+
+    function checkResults() {
+        if (round > 10) return; // Prevent extra rounds
+
+        const num1 = parseFloat(document.getElementById("num1").value);
+        const num2 = parseFloat(document.getElementById("num2").value);
+        const num3 = parseFloat(document.getElementById("num3").value);
+        const num4 = parseFloat(document.getElementById("num4").value);
+
+        const userResult1 = parseFloat(document.getElementById("result1").value);
+        const userResult2 = parseFloat(document.getElementById("result2").value);
+
+        const op1 = document.getElementById("operator").textContent;
+
+        const correctResult1 = calculate(num1, num2, op1);
+        const correctResult2 = calculate(num3, num4, op1);
+
+        // Check if the user's answers match the correct answers
+        if (userResult1 === correctResult1 && userResult2 === correctResult2) {
+            score++;
+            document.getElementById("score").textContent = "Score: " + score;
+        }
+
+        if (round === 10) { 
+            // End the game at round 10
+            alert("Game Over! Final Score: " + score);
+            savePlayerData();
+            document.getElementById("checkBtn").disabled = true;  
+            document.getElementById("generateBtn").disabled = true;
+            document.getElementById("restartBtn").disabled = false;
+        } else {
+            round++;
+            document.getElementById("round").textContent = round;
+            operatorGenerated = false;
+            document.getElementById("operator").style.visibility = "hidden";
+            document.getElementById("generateBtn").disabled = false;
+            document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
+        }
+    }
+
+    // Function to restart the game
+    function restartGame() {
+        // Reset all game variables
+        score = 0;
+        round = 1;
+        document.getElementById("round").textContent = round;
+        document.getElementById("score").textContent = "Score: 0";
+
+        // Clear inputs and hide operator
+        document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
         document.getElementById("operator").style.visibility = "hidden";
         document.getElementById("generateBtn").disabled = false;
-        document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
+
+        // Reset the game container to show name inputs
+        document.getElementById("game").style.display = "none";
+        document.getElementById("name").value = "";
+        document.getElementById("class").value = "";
+        document.getElementById("section").value = "";
+
+        // Re-enable start button
+        const startBtn = document.querySelector("button[onclick='startGame()']");
+        startBtn.disabled = false;
+
+        // Re-enable check button
+        document.getElementById("checkBtn").disabled = false;
+        document.getElementById("restartBtn").disabled = true; // Disable restart button after restarting
     }
-}
 
-function restartGame() {
-    score = 0;
-    round = 1;
-    document.getElementById("round").textContent = round;
-    document.getElementById("score").textContent = "Score: 0";
+    function savePlayerData() {
+        let currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+        if (!currentPlayer) return;
 
-    document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
-    document.getElementById("operator").style.visibility = "hidden";
-    document.getElementById("generateBtn").disabled = false;
+        currentPlayer.score = score;
 
-    document.getElementById("game").style.display = "none";
-    document.getElementById("name").value = "";
-    document.getElementById("class").value = "";
-    document.getElementById("section").value = "";
+        // Reference to Firebase Database
+        const playersRef = database.ref('players');
 
-    document.querySelector("button[onclick='startGame()']").disabled = false;
-    document.getElementById("checkBtn").disabled = false;
-    document.getElementById("restartBtn").disabled = true;
-}
-
-function savePlayerData() {
-    let currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
-    if (!currentPlayer) return;
-
-    currentPlayer.score = score;
-
-    const playersRef = database.ref('players');
-
-    playersRef.push({
-        name: currentPlayer.name,
-        class: currentPlayer.class,
-        section: currentPlayer.section,
-        score: currentPlayer.score
-    })
-    .then(() => {
-        alert("Data Saved Successfully!");
-    })
-    .catch((error) => {
-        console.error("Error saving data: ", error);
-        alert("Error saving data!");
-    });
-}
+        // Push new player data
+        playersRef.push({
+            name: currentPlayer.name,
+            class: currentPlayer.class,
+            section: currentPlayer.section,
+            score: currentPlayer.score
+        })
+        .then(() => {
+            alert("Data Saved Successfully!");
+        })
+        .catch((error) => {
+            console.error("Error saving data: ", error);
+            alert("Error saving data!");
+        });
+    }
 </script>
+
 
 </body>
 </html>
