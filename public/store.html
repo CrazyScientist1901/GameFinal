@@ -190,31 +190,32 @@
         }
 
         function viewLeaderboard() {
-            const leaderboardDiv = document.getElementById("leaderboard");
-            leaderboardDiv.innerHTML = "Loading...";
+    const leaderboardDiv = document.getElementById("leaderboard");
+    leaderboardDiv.innerHTML = "Loading...";
 
-            firebase.database().ref("players").once("value", function(snapshot) {
-                const data = snapshot.val();
-                if (!data) {
-                    leaderboardDiv.innerHTML = "No data available.";
-                    return;
-                }
-
-                const playerList = Object.values(data);
-                playerList.sort((a, b) => b.score - a.score);
-
-                let leaderboardHtml = "<ul>";
-                playerList.forEach(player => {
-                    leaderboardHtml += `<li>${player.name} (${player.class} - ${player.section}): ${player.score}</li>`;
-                });
-                leaderboardHtml += "</ul>";
-
-                leaderboardDiv.innerHTML = leaderboardHtml;
-            }, function (error) {
-                console.error("Error reading data: ", error);
-                leaderboardDiv.innerHTML = "Error loading leaderboard.";
-            });
+    firebase.database().ref("players").orderByChild("score").limitToLast(10).once("value", function(snapshot) {
+        const data = snapshot.val();
+        if (!data) {
+            leaderboardDiv.innerHTML = "No data available.";
+            return;
         }
+
+        const playerList = Object.values(data);
+        playerList.sort((a, b) => b.score - a.score); // Sort by score, descending
+
+        let leaderboardHtml = "<ul>";
+        playerList.forEach(player => {
+            leaderboardHtml += `<li>${player.name} (${player.class} - ${player.section}): ${player.score}</li>`;
+        });
+        leaderboardHtml += "</ul>";
+
+        leaderboardDiv.innerHTML = leaderboardHtml;
+    }, function (error) {
+        console.error("Error reading data: ", error);
+        leaderboardDiv.innerHTML = "Error loading leaderboard.";
+    });
+}
+
 
         function clearLeaderboard() {
             if (confirm("Are you sure you want to clear the leaderboard?")) {
