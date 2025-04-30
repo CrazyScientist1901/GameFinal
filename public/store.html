@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Store Game Data</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>    <!-- Add inside <head> -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -142,60 +145,86 @@
     </div>
 
     <script>
-        const correctPassword = "admin123";
+    // ✅ Firebase config
+    const firebaseConfig = {
+        apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
+        authDomain: "mathgame-d8afe.firebaseapp.com",
+        databaseURL: "https://mathgame-d8afe-default-rtdb.firebaseio.com",
+        projectId: "mathgame-d8afe",
+        storageBucket: "mathgame-d8afe.appspot.com",
+        messagingSenderId: "339478386785",
+        appId: "1:339478386785:web:fe25feb5bcb940c8983220",
+        measurementId: "G-DPJ79JZFQ1"
+    };
 
-        function checkPassword() {
-            const password = document.getElementById("password").value;
+    // ✅ Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-            if (password === correctPassword) {
-                document.getElementById("loginPage").style.display = "none";
-                document.getElementById("mainPage").style.display = "block";
-            } else {
-                alert("Incorrect password. Please try again.");
-            }
+    const correctPassword = "admin123";
+
+    function checkPassword() {
+        const password = document.getElementById("password").value;
+        if (password === correctPassword) {
+            document.getElementById("loginPage").style.display = "none";
+            document.getElementById("mainPage").style.display = "block";
+            viewLeaderboard();
+        } else {
+            alert("Incorrect password. Please try again.");
         }
+    }
 
-        function downloadExcel() {
-            const storedData = JSON.parse(localStorage.getItem("playerData")) || [];
-            if (storedData.length === 0) {
+    function downloadExcel() {
+        firebase.database().ref('players').once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
                 alert("No data to export");
                 return;
             }
 
-            const worksheet = XLSX.utils.json_to_sheet(storedData);
+            const playerArray = Object.values(data);
+            const worksheet = XLSX.utils.json_to_sheet(playerArray);
             worksheet['!autofilter'] = { ref: worksheet['!ref'] };
 
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Players");
             XLSX.writeFile(workbook, "PlayerData.xlsx");
-        }
+        });
+    }
 
-        function viewLeaderboard() {
-            const storedData = JSON.parse(localStorage.getItem("playerData")) || [];
-            const leaderboardDiv = document.getElementById("leaderboard");
+    function viewLeaderboard() {
+        const leaderboardDiv = document.getElementById("leaderboard");
+        leaderboardDiv.innerHTML = "Loading...";
 
-            if (storedData.length === 0) {
+        firebase.database().ref('players').once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
                 leaderboardDiv.innerHTML = "No data available.";
                 return;
             }
 
-            storedData.sort((a, b) => b.score - a.score);
+            const playerArray = Object.values(data);
+            playerArray.sort((a, b) => b.score - a.score);
 
             let leaderboardHtml = "<ul>";
-            storedData.forEach(player => {
+            playerArray.forEach(player => {
                 leaderboardHtml += `<li>${player.name} (${player.class} - ${player.section}): ${player.score}</li>`;
             });
             leaderboardHtml += "</ul>";
 
             leaderboardDiv.innerHTML = leaderboardHtml;
-        }
+        });
+    }
 
-        function clearLeaderboard() {
-            if (confirm("Are you sure you want to clear the leaderboard?")) {
-                localStorage.removeItem("playerData");
+    function clearLeaderboard() {
+        if (confirm("Are you sure you want to clear the leaderboard?")) {
+            firebase.database().ref('players').remove().then(() => {
                 viewLeaderboard();
-            }
+                alert("Leaderboard cleared.");
+            });
         }
-    </script>
+    }
+</script>
+
 </body>
 </html>
