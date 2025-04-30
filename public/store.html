@@ -193,28 +193,37 @@
     }
 
     function viewLeaderboard() {
-        const leaderboardDiv = document.getElementById("leaderboard");
-        leaderboardDiv.innerHTML = "Loading...";
+    const leaderboardDiv = document.getElementById("leaderboard");
+    leaderboardDiv.innerHTML = "Loading...";
 
-        firebase.database().ref('players').once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (!data) {
-                leaderboardDiv.innerHTML = "No data available.";
-                return;
-            }
+    firebase.database().ref("players").once("value", function(snapshot) {
+        const data = snapshot.val();
+        
+        if (!data) {
+            leaderboardDiv.innerHTML = "No data available.";
+            return;
+        }
 
-            const playerArray = Object.values(data);
-            playerArray.sort((a, b) => b.score - a.score);
+        // Convert the object to an array
+        const playerList = Object.values(data);
 
-            let leaderboardHtml = "<ul>";
-            playerArray.forEach(player => {
-                leaderboardHtml += `<li>${player.name} (${player.class} - ${player.section}): ${player.score}</li>`;
-            });
-            leaderboardHtml += "</ul>";
+        // Sort by score (highest first)
+        playerList.sort((a, b) => b.score - a.score);
 
-            leaderboardDiv.innerHTML = leaderboardHtml;
+        // Generate HTML
+        let leaderboardHtml = "<ul>";
+        playerList.forEach(player => {
+            leaderboardHtml += `<li>${player.name} (${player.class} - ${player.section}): ${player.score}</li>`;
         });
-    }
+        leaderboardHtml += "</ul>";
+
+        leaderboardDiv.innerHTML = leaderboardHtml;
+    }, function (error) {
+        console.error("Error reading data: ", error);
+        leaderboardDiv.innerHTML = "Error loading leaderboard.";
+    });
+}
+
 
     function clearLeaderboard() {
         if (confirm("Are you sure you want to clear the leaderboard?")) {
