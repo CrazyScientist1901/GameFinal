@@ -188,8 +188,6 @@
             measurementId: "G-DPJ79JZFQ1"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
 
         let score = 0;
         let round = 1;
@@ -278,23 +276,30 @@
                 document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
             }
         }
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
 
         function savePlayerData() {
-            const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
-            if (currentPlayer) {
-                const playerRef = db.ref('players/' + currentPlayer.name);
-                playerRef.set({
-                    name: currentPlayer.name,
-                    class: currentPlayer.class,
-                    section: currentPlayer.section,
-                    score: score
-                }).then(() => {
-                    console.log('Player data saved to Firebase');
-                }).catch((error) => {
-                    console.error('Error saving data to Firebase: ', error);
-                });
-            }
-        }
+    console.log("Trying to save data..."); // Add this
+    const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+    if (currentPlayer) {
+        const playerRef = db.ref('players/' + currentPlayer.name);
+        playerRef.set({
+            name: currentPlayer.name,
+            class: currentPlayer.class,
+            section: currentPlayer.section,
+            score: score
+        }).then(() => {
+            console.log('Player data saved to Firebase');
+        }).catch((error) => {
+            console.error('Error saving data to Firebase: ', error.message);
+        });
+    } else {
+        console.log("No player found in localStorage");
+    }
+}
+
 
         function restartGame() {
             score = 0;
