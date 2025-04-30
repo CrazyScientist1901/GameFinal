@@ -6,12 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Math Game</title>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <!-- Firebase SDK v8 (compatible with HTML via CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <style>
+        /* Same CSS as before */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f3f4f6;
@@ -23,7 +24,6 @@
             height: 100vh;
             overflow: hidden;
         }
-    
         .container {
             max-width: 400px;
             width: 100%;
@@ -35,19 +35,16 @@
             overflow-y: auto;
             height: 90vh;
         }
-    
         h1 {
             color: #4A90E2;
             font-size: 26px;
             margin-bottom: 10px;
         }
-    
         p {
             color: #777;
             font-size: 14px;
             margin-bottom: 15px;
         }
-    
         input[type="text"],
         input[type="number"] {
             width: 90%;
@@ -58,13 +55,11 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
-    
         input[type="text"]:focus,
         input[type="number"]:focus {
             border-color: #4A90E2;
             outline: none;
         }
-    
         button {
             background-color: #4A90E2;
             color: white;
@@ -77,71 +72,57 @@
             width: 90%;
             transition: background-color 0.3s;
         }
-    
         button:hover {
             background-color: #357ABD;
         }
-    
         button:disabled {
             background-color: #ccc;
             cursor: not-allowed;
         }
-    
         .parent {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
             margin: 15px 0;
         }
-    
         .operator {
             font-size: 24px;
             align-self: center;
             visibility: hidden;
             color: #333;
         }
-    
         ::placeholder {
             color: #888;
             font-style: italic;
         }
-    
         #score,
         #round {
             font-size: 18px;
             font-weight: bold;
             color: #333;
         }
-    
         #game {
             display: none;
         }
-    
         #restartBtn {
             margin-top: 20px;
             width: 90%;
         }
-    
-        /* Responsive Design */
         @media (max-width: 480px) {
             .container {
                 padding: 10px;
             }
-    
             h1 {
                 font-size: 24px;
             }
-    
             input[type="text"],
             input[type="number"] {
                 font-size: 14px;
             }
-    
             button {
                 font-size: 14px;
                 padding: 8px;
             }
-    
             .parent {
                 grid-template-columns: 1fr;
             }
@@ -149,7 +130,6 @@
     </style>    
 </head>
 <body>
-    <div id="app"></div>
     <div class="container">
         <h1>Math Game</h1>
         <p>Enter your details to start the game</p>
@@ -170,8 +150,8 @@
             <option value="F">F</option>
         </select>
         <button onclick="startGame()">Start Game</button>
-    
-        <div id="game" style="display:none;">
+
+        <div id="game">
             <p>Round: <span id="round">1</span> / 10</p>
             <div class="parent">
                 <input type="number" id="num1" placeholder="Number 1">
@@ -192,12 +172,11 @@
             <button id="checkBtn" onclick="checkResults()" disabled>Check</button>
             <button id="restartBtn" onclick="restartGame()" disabled>Restart</button>
             <p id="score">Score: 0</p>
-            <p id="num"></p>
         </div>
     </div>
 
-   <script>
-        // Initialize Firebase
+    <script>
+        // Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
             authDomain: "mathgame-d8afe.firebaseapp.com",
@@ -209,8 +188,8 @@
             measurementId: "G-DPJ79JZFQ1"
         };
 
-        const app = firebase.initializeApp(firebaseConfig); // Access Firebase via the global object
-        const db = firebase.database(app); // Access database via the global object
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
         let score = 0;
         let round = 1;
@@ -228,7 +207,6 @@
                 return;
             }
 
-            // Store player data in localStorage
             localStorage.setItem("currentPlayer", JSON.stringify({
                 name: playerName,
                 class: playerClass,
@@ -259,7 +237,7 @@
                 case '+': return numA + numB;
                 case '-': return numA - numB;
                 case 'X': return numA * numB;
-                case '÷': return numB !== 0 ? parseFloat((numA / numB).toFixed(2)) : NaN; // Handle division by zero
+                case '÷': return numB !== 0 ? parseFloat((numA / numB).toFixed(2)) : NaN;
                 default: return 0;
             }
         }
@@ -286,7 +264,6 @@
             }
 
             if (round === 10) {
-                // End the game at round 10
                 alert("Game Over! Final Score: " + score);
                 savePlayerData();
                 document.getElementById("checkBtn").disabled = true;
@@ -305,12 +282,12 @@
         function savePlayerData() {
             const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
             if (currentPlayer) {
-                const playerRef = firebase.database().ref('players/' + currentPlayer.name); // Access database ref via global firebase object
+                const playerRef = db.ref('players/' + currentPlayer.name);
                 playerRef.set({
                     name: currentPlayer.name,
                     class: currentPlayer.class,
                     section: currentPlayer.section,
-                    score: currentPlayer.score
+                    score: score
                 }).then(() => {
                     console.log('Player data saved to Firebase');
                 }).catch((error) => {
@@ -326,6 +303,9 @@
             document.getElementById("round").textContent = round;
             document.getElementById("restartBtn").disabled = false;
             operatorGenerated = false;
+            document.getElementById("checkBtn").disabled = true;
+            document.getElementById("generateBtn").disabled = false;
+            document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
         }
     </script>
 </body>
