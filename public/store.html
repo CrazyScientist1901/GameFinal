@@ -145,95 +145,85 @@
     </div>
 
     <script>
-    // ✅ Firebase config
-    const firebaseConfig = {
-        apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
-        authDomain: "mathgame-d8afe.firebaseapp.com",
-        databaseURL: "https://mathgame-d8afe-default-rtdb.firebaseio.com",
-        projectId: "mathgame-d8afe",
-        storageBucket: "mathgame-d8afe.appspot.com",
-        messagingSenderId: "339478386785",
-        appId: "1:339478386785:web:fe25feb5bcb940c8983220",
-        measurementId: "G-DPJ79JZFQ1"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
+            authDomain: "mathgame-d8afe.firebaseapp.com",
+            databaseURL: "https://mathgame-d8afe-default-rtdb.firebaseio.com",
+            projectId: "mathgame-d8afe",
+            storageBucket: "mathgame-d8afe.appspot.com",
+            messagingSenderId: "339478386785",
+            appId: "1:339478386785:web:fe25feb5bcb940c8983220",
+            measurementId: "G-DPJ79JZFQ1"
+        };
 
-    // ✅ Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const correctPassword = "admin123";
 
-    const correctPassword = "admin123";
-
-    function checkPassword() {
-        const password = document.getElementById("password").value;
-        if (password === correctPassword) {
-            document.getElementById("loginPage").style.display = "none";
-            document.getElementById("mainPage").style.display = "block";
-            viewLeaderboard();
-        } else {
-            alert("Incorrect password. Please try again.");
-        }
-    }
-
-    function downloadExcel() {
-        firebase.database().ref('players').once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (!data) {
-                alert("No data to export");
-                return;
-            }
-
-            const playerArray = Object.values(data);
-            const worksheet = XLSX.utils.json_to_sheet(playerArray);
-            worksheet['!autofilter'] = { ref: worksheet['!ref'] };
-
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Players");
-            XLSX.writeFile(workbook, "PlayerData.xlsx");
-        });
-    }
-
-    function viewLeaderboard() {
-    const leaderboardDiv = document.getElementById("leaderboard");
-    leaderboardDiv.innerHTML = "Loading...";
-
-    firebase.database().ref("players").once("value", function(snapshot) {
-        const data = snapshot.val();
-        
-        if (!data) {
-            leaderboardDiv.innerHTML = "No data available.";
-            return;
-        }
-
-        // Convert the object to an array
-        const playerList = Object.values(data);
-
-        // Sort by score (highest first)
-        playerList.sort((a, b) => b.score - a.score);
-
-        // Generate HTML
-        let leaderboardHtml = "<ul>";
-        playerList.forEach(player => {
-            leaderboardHtml += `<li>${player.name} (${player.class} - ${player.section}): ${player.score}</li>`;
-        });
-        leaderboardHtml += "</ul>";
-
-        leaderboardDiv.innerHTML = leaderboardHtml;
-    }, function (error) {
-        console.error("Error reading data: ", error);
-        leaderboardDiv.innerHTML = "Error loading leaderboard.";
-    });
-}
-
-
-    function clearLeaderboard() {
-        if (confirm("Are you sure you want to clear the leaderboard?")) {
-            firebase.database().ref('players').remove().then(() => {
+        function checkPassword() {
+            const password = document.getElementById("password").value;
+            if (password === correctPassword) {
+                document.getElementById("loginPage").style.display = "none";
+                document.getElementById("mainPage").style.display = "block";
                 viewLeaderboard();
-                alert("Leaderboard cleared.");
+            } else {
+                alert("Incorrect password. Please try again.");
+            }
+        }
+
+        function downloadExcel() {
+            firebase.database().ref('players').once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    alert("No data to export");
+                    return;
+                }
+
+                const playerArray = Object.values(data);
+                const worksheet = XLSX.utils.json_to_sheet(playerArray);
+                worksheet['!autofilter'] = { ref: worksheet['!ref'] };
+
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Players");
+                XLSX.writeFile(workbook, "PlayerData.xlsx");
             });
         }
-    }
-</script>
 
+        function viewLeaderboard() {
+            const leaderboardDiv = document.getElementById("leaderboard");
+            leaderboardDiv.innerHTML = "Loading...";
+
+            firebase.database().ref("players").once("value", function(snapshot) {
+                const data = snapshot.val();
+                if (!data) {
+                    leaderboardDiv.innerHTML = "No data available.";
+                    return;
+                }
+
+                const playerList = Object.values(data);
+                playerList.sort((a, b) => b.score - a.score);
+
+                let leaderboardHtml = "<ul>";
+                playerList.forEach(player => {
+                    leaderboardHtml += `<li>${player.name} (${player.class} - ${player.section}): ${player.score}</li>`;
+                });
+                leaderboardHtml += "</ul>";
+
+                leaderboardDiv.innerHTML = leaderboardHtml;
+            }, function (error) {
+                console.error("Error reading data: ", error);
+                leaderboardDiv.innerHTML = "Error loading leaderboard.";
+            });
+        }
+
+        function clearLeaderboard() {
+            if (confirm("Are you sure you want to clear the leaderboard?")) {
+                firebase.database().ref('players').remove().then(() => {
+                    viewLeaderboard();
+                    alert("Leaderboard cleared.");
+                });
+            }
+        }
+    </script>
 </body>
 </html>
