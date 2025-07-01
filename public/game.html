@@ -6,13 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Math Game</title>
 
-    <!-- Firebase SDK v8 (compatible with HTML via CDN) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <style>
-        /* Same CSS as before */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f3f4f6;
@@ -46,7 +45,8 @@
             margin-bottom: 15px;
         }
         input[type="text"],
-        input[type="number"] {
+        input[type="number"],
+        select {
             width: 90%;
             padding: 10px;
             margin: 5px 0;
@@ -55,8 +55,8 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
-        input[type="text"]:focus,
-        input[type="number"]:focus {
+        input:focus,
+        select:focus {
             border-color: #4A90E2;
             outline: none;
         }
@@ -115,10 +115,7 @@
             h1 {
                 font-size: 24px;
             }
-            input[type="text"],
-            input[type="number"] {
-                font-size: 14px;
-            }
+            input,
             button {
                 font-size: 14px;
                 padding: 8px;
@@ -156,16 +153,16 @@
             <div class="parent">
                 <input type="number" id="num1" placeholder="Number 1">
                 <input type="number" id="num2" placeholder="Number 2">
-                <input type="number" id="result1" placeholder="Result 1">
+                <input type="number" id="result1" placeholder="Result 1" readonly>
             </div>
             <div class="parent">
                 <input type="number" id="num3" placeholder="Number 3">
                 <input type="number" id="num4" placeholder="Number 4">
-                <input type="number" id="result2" placeholder="Result 2">
+                <input type="number" id="result2" placeholder="Result 2" readonly>
             </div>
             <div class="parent">
-                <input type="number" id="result3" placeholder="Result 3">
-                <input type="number" id="result4" placeholder="Result 4">
+                <input type="number" id="result3" placeholder="Result 3" readonly>
+                <input type="number" id="result4" placeholder="Result 4" readonly>
                 <span id="operator" class="operator">+</span>
             </div>
             <button id="generateBtn" onclick="generatePuzzle()">Generate Puzzle</button>
@@ -176,7 +173,6 @@
     </div>
 
     <script>
-        // Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
             authDomain: "mathgame-d8afe.firebaseapp.com",
@@ -187,7 +183,6 @@
             appId: "1:339478386785:web:fe25feb5bcb940c8983220",
             measurementId: "G-DPJ79JZFQ1"
         };
-
 
         let score = 0;
         let round = 1;
@@ -217,19 +212,6 @@
             document.querySelector("button[onclick='startGame()']").disabled = true;
         }
 
-        function generatePuzzle() {
-            if (operatorGenerated) return;
-            document.getElementById("num1").value = Math.floor(Math.random() * 100) + 1;
-            document.getElementById("num2").value = Math.floor(Math.random() * 100) + 1;
-            document.getElementById("num3").value = Math.floor(Math.random() * 100) + 1;
-            document.getElementById("num4").value = Math.floor(Math.random() * 100) + 1;
-            const randomOp1 = operators[Math.floor(Math.random() * operators.length)];
-            document.getElementById("operator").textContent = randomOp1;
-            document.getElementById("operator").style.visibility = "visible";
-            operatorGenerated = true;
-            document.getElementById("checkBtn").disabled = false;
-        }
-
         function calculate(numA, numB, op) {
             switch (op) {
                 case '+': return numA + numB;
@@ -240,6 +222,36 @@
             }
         }
 
+        function generatePuzzle() {
+            if (operatorGenerated) return;
+
+            const op = operators[Math.floor(Math.random() * operators.length)];
+            document.getElementById("operator").textContent = op;
+            document.getElementById("operator").style.visibility = "visible";
+            operatorGenerated = true;
+            document.getElementById("checkBtn").disabled = false;
+
+            const a1 = Math.floor(Math.random() * 50) + 1;
+            const b1 = Math.floor(Math.random() * 50) + 1;
+            const a2 = Math.floor(Math.random() * 50) + 1;
+            const b2 = Math.floor(Math.random() * 50) + 1;
+
+            const result1 = calculate(a1, b1, op);
+            const result2 = calculate(a2, b2, op);
+            const result3 = calculate(result1, result2, op);
+            const result4 = calculate(result2, result1, op);
+
+            document.getElementById("result1").value = result1;
+            document.getElementById("result2").value = result2;
+            document.getElementById("result3").value = result3;
+            document.getElementById("result4").value = result4;
+
+            document.getElementById("num1").value = '';
+            document.getElementById("num2").value = '';
+            document.getElementById("num3").value = '';
+            document.getElementById("num4").value = '';
+        }
+
         function checkResults() {
             if (round > 10) return;
 
@@ -248,15 +260,24 @@
             const num3 = parseFloat(document.getElementById("num3").value);
             const num4 = parseFloat(document.getElementById("num4").value);
 
-            const userResult1 = parseFloat(document.getElementById("result1").value);
-            const userResult2 = parseFloat(document.getElementById("result2").value);
+            const result1 = parseFloat(document.getElementById("result1").value);
+            const result2 = parseFloat(document.getElementById("result2").value);
+            const result3 = parseFloat(document.getElementById("result3").value);
+            const result4 = parseFloat(document.getElementById("result4").value);
 
-            const op1 = document.getElementById("operator").textContent;
+            const op = document.getElementById("operator").textContent;
 
-            const correctResult1 = calculate(num1, num2, op1);
-            const correctResult2 = calculate(num3, num4, op1);
+            const userResult1 = calculate(num1, num2, op);
+            const userResult2 = calculate(num3, num4, op);
+            const userResult3 = calculate(userResult1, userResult2, op);
+            const userResult4 = calculate(userResult2, userResult1, op);
 
-            if (userResult1 === correctResult1 && userResult2 === correctResult2) {
+            if (
+                userResult1 === result1 &&
+                userResult2 === result2 &&
+                userResult3 === result3 &&
+                userResult4 === result4
+            ) {
                 score++;
                 document.getElementById("score").textContent = "Score: " + score;
             }
@@ -273,33 +294,31 @@
                 operatorGenerated = false;
                 document.getElementById("operator").style.visibility = "hidden";
                 document.getElementById("generateBtn").disabled = false;
-                document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
+                document.querySelectorAll("input[type=number]").forEach(input => {
+                    if (!input.hasAttribute("readonly")) input.value = "";
+                });
             }
         }
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-
         function savePlayerData() {
-    console.log("Trying to save data..."); // Add this
-    const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
-    if (currentPlayer) {
-        const playerRef = db.ref('players/' + currentPlayer.name);
-        playerRef.set({
-            name: currentPlayer.name,
-            class: currentPlayer.class,
-            section: currentPlayer.section,
-            score: score
-        }).then(() => {
-            console.log('Player data saved to Firebase');
-        }).catch((error) => {
-            console.error('Error saving data to Firebase: ', error.message);
-        });
-    } else {
-        console.log("No player found in localStorage");
-    }
-}
-
+            const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+            if (currentPlayer) {
+                const playerRef = db.ref('players/' + currentPlayer.name);
+                playerRef.set({
+                    name: currentPlayer.name,
+                    class: currentPlayer.class,
+                    section: currentPlayer.section,
+                    score: score
+                }).then(() => {
+                    console.log('Player data saved to Firebase');
+                }).catch((error) => {
+                    console.error('Error saving data to Firebase: ', error.message);
+                });
+            }
+        }
 
         function restartGame() {
             score = 0;
@@ -310,7 +329,9 @@
             operatorGenerated = false;
             document.getElementById("checkBtn").disabled = true;
             document.getElementById("generateBtn").disabled = false;
-            document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
+            document.querySelectorAll("input[type=number]").forEach(input => {
+                if (!input.hasAttribute("readonly")) input.value = "";
+            });
         }
     </script>
 </body>
