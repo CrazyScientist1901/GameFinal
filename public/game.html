@@ -1,331 +1,172 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Math Game</title>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f3f4f6;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .container {
-            max-width: 400px;
-            width: 100%;
-            background-color: #ffffff;
-            padding: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            text-align: center;
-            overflow-y: auto;
-            height: 90vh;
-        }
-        h1 {
-            color: #4A90E2;
-            font-size: 26px;
-            margin-bottom: 10px;
-        }
-        p {
-            color: #777;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-        input[type="text"],
-        input[type="number"],
-        select {
-            width: 90%;
-            padding: 10px;
-            margin: 5px 0;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        input:focus,
-        select:focus {
-            border-color: #4A90E2;
-            outline: none;
-        }
-        button {
-            background-color: #4A90E2;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 15px;
-            width: 90%;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #357ABD;
-        }
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        .parent {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin: 15px 0;
-        }
-        .operator {
-            font-size: 24px;
-            align-self: center;
-            visibility: hidden;
-            color: #333;
-        }
-        ::placeholder {
-            color: #888;
-            font-style: italic;
-        }
-        #score,
-        #round {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-        }
-        #game {
-            display: none;
-        }
-        #restartBtn {
-            margin-top: 20px;
-            width: 90%;
-        }
-        @media (max-width: 480px) {
-            .container {
-                padding: 10px;
-            }
-            h1 {
-                font-size: 24px;
-            }
-            input,
-            button {
-                font-size: 14px;
-                padding: 8px;
-            }
-            .parent {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>    
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Math Game</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f3f4f6;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .container {
+      max-width: 400px;
+      width: 100%;
+      background-color: #ffffff;
+      padding: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      text-align: center;
+      overflow-y: auto;
+      height: 90vh;
+    }
+    input, select {
+      width: 90%;
+      padding: 10px;
+      margin: 5px 0;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #4A90E2;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 15px;
+      width: 90%;
+    }
+    .parent {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 15px 0;
+    }
+    .operator {
+      font-size: 24px;
+      align-self: center;
+      color: #333;
+    }
+    #game {
+      display: none;
+    }
+    #answerBox {
+      color: green;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Math Game</h1>
-        <p>Enter your details to start the game</p>
-        <input type="text" id="name" placeholder="Name">
-        <label for="class">Select Class </label>
-        <select name="class" id="class">
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-        </select>
-        <label for="section">Select Section </label>
-        <select name="section" id="section">
-            <option value="A">A</option>
-            <option value="B">B</option>
-            <option value="C">C</option>
-            <option value="D">D</option>
-            <option value="E">E</option>
-            <option value="F">F</option>
-        </select>
-        <button onclick="startGame()">Start Game</button>
+  <div class="container">
+    <h1>Math Game</h1>
+    <input type="text" id="name" placeholder="Name">
+    <select id="class">
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+    </select>
+    <select id="section">
+      <option value="A">A</option>
+      <option value="B">B</option>
+    </select>
+    <button onclick="startGame()">Start Game</button>
 
-        <div id="game">
-            <p>Round: <span id="round">1</span> / 10</p>
-            <div class="parent">
-                <input type="number" id="num1" placeholder="Number 1">
-                <input type="number" id="num2" placeholder="Number 2">
-                <input type="number" id="result1" placeholder="Result 1" readonly>
-            </div>
-            <div class="parent">
-                <input type="number" id="num3" placeholder="Number 3">
-                <input type="number" id="num4" placeholder="Number 4">
-                <input type="number" id="result2" placeholder="Result 2" readonly>
-            </div>
-            <div class="parent">
-                <input type="number" id="result3" placeholder="Result 3" readonly>
-                <input type="number" id="result4" placeholder="Result 4" readonly>
-                <span id="operator" class="operator">+</span>
-            </div>
-            <button id="generateBtn" onclick="generatePuzzle()">Generate Puzzle</button>
-            <button id="checkBtn" onclick="checkResults()" disabled>Check</button>
-            <button id="restartBtn" onclick="restartGame()" disabled>Restart</button>
-            <p id="score">Score: 0</p>
-        </div>
+    <div id="game">
+      <p>Round: <span id="round">1</span> / 10</p>
+      <div class="parent">
+        <input type="number" id="num1" placeholder="Number 1">
+        <input type="number" id="num2" placeholder="Number 2">
+        <input type="number" id="result1" placeholder="Result 1" readonly>
+      </div>
+      <div class="parent">
+        <input type="number" id="num3" placeholder="Number 3">
+        <input type="number" id="num4" placeholder="Number 4">
+        <input type="number" id="result2" placeholder="Result 2" readonly>
+      </div>
+      <div class="parent">
+        <input type="number" id="result3" placeholder="Result 3" readonly>
+        <input type="number" id="result4" placeholder="Result 4" readonly>
+        <span id="operator" class="operator">-</span>
+      </div>
+      <button onclick="generatePuzzle()">Generate Puzzle</button>
+      <button onclick="checkResults()">Check</button>
+      <div id="answerBox"></div>
+      <p id="score">Score: 0</p>
     </div>
+  </div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
-            authDomain: "mathgame-d8afe.firebaseapp.com",
-            databaseURL: "https://mathgame-d8afe-default-rtdb.firebaseio.com",
-            projectId: "mathgame-d8afe",
-            storageBucket: "mathgame-d8afe.appspot.com",
-            messagingSenderId: "339478386785",
-            appId: "1:339478386785:web:fe25feb5bcb940c8983220",
-            measurementId: "G-DPJ79JZFQ1"
-        };
+  <script>
+    let score = 0;
+    let round = 1;
 
-        let score = 0;
-        let round = 1;
-        const operators = ['+', '-', 'X', '÷'];
-        let operatorGenerated = false;
+    function startGame() {
+      const name = document.getElementById("name").value;
+      const cls = document.getElementById("class").value;
+      const section = document.getElementById("section").value;
 
-        function startGame() {
-            const playerName = document.getElementById("name").value;
-            const playerClass = document.getElementById("class").value;
-            const playerSection = document.getElementById("section").value;
-            document.getElementById("restartBtn").disabled = true;
+      if (!name || !cls || !section) {
+        alert("Please fill all details");
+        return;
+      }
 
-            if (!playerName || !playerClass || !playerSection) {
-                alert("Please enter all details to start the game");
-                return;
-            }
+      document.getElementById("game").style.display = "block";
+    }
 
-            localStorage.setItem("currentPlayer", JSON.stringify({
-                name: playerName,
-                class: playerClass,
-                section: playerSection,
-                score: 0
-            }));
+    function generatePuzzle() {
+      let num1 = Math.floor(Math.random() * 100) + 50;
+      let num2 = Math.floor(Math.random() * 50);
+      let num3 = Math.floor(Math.random() * 100) + 20;
+      let num4 = num3; // Ensures result2 = 0
 
-            document.getElementById("game").style.display = "block";
-            operatorGenerated = false;
-            document.querySelector("button[onclick='startGame()']").disabled = true;
-        }
+      document.getElementById("num1").value = "";
+      document.getElementById("num2").value = "";
+      document.getElementById("num3").value = "";
+      document.getElementById("num4").value = "";
 
-        function calculate(numA, numB, op) {
-            switch (op) {
-                case '+': return numA + numB;
-                case '-': return numA - numB;
-                case 'X': return numA * numB;
-                case '÷': return numB !== 0 ? parseFloat((numA / numB).toFixed(2)) : NaN;
-                default: return 0;
-            }
-        }
+      document.getElementById("result1").value = num1 - num2;
+      document.getElementById("result2").value = num3 - num4;
+      document.getElementById("result3").value = num1 - num3;
+      document.getElementById("result4").value = num2 - num4;
+      document.getElementById("answerBox").innerText = "";
+    }
 
-        function generatePuzzle() {
-    if (operatorGenerated) return;
+    function checkResults() {
+      let userNum1 = parseFloat(document.getElementById("num1").value);
+      let userNum2 = parseFloat(document.getElementById("num2").value);
+      let userNum3 = parseFloat(document.getElementById("num3").value);
+      let userNum4 = parseFloat(document.getElementById("num4").value);
 
-    const op = '-';
-    document.getElementById("operator").textContent = op;
-    document.getElementById("operator").style.visibility = "visible";
-    operatorGenerated = true;
-    document.getElementById("checkBtn").disabled = false;
+      let r1 = parseFloat(document.getElementById("result1").value);
+      let r2 = parseFloat(document.getElementById("result2").value);
+      let r3 = parseFloat(document.getElementById("result3").value);
+      let r4 = parseFloat(document.getElementById("result4").value);
 
-    // Generate 4 random results between -50 and 50
-    const result1 = Math.floor(Math.random() * 101) - 50;
-    const result2 = Math.floor(Math.random() * 101) - 50;
-    const result3 = Math.floor(Math.random() * 101) - 50;
-    const result4 = Math.floor(Math.random() * 101) - 50;
+      const correct = (userNum1 - userNum2 === r1 &&
+                      userNum3 - userNum4 === r2 &&
+                      userNum1 - userNum3 === r3 &&
+                      userNum2 - userNum4 === r4);
 
-    // Set result fields
-    document.getElementById("result1").value = result1;
-    document.getElementById("result2").value = result2;
-    document.getElementById("result3").value = result3;
-    document.getElementById("result4").value = result4;
-
-    // Clear number inputs
-    document.getElementById("num1").value = '';
-    document.getElementById("num2").value = '';
-    document.getElementById("num3").value = '';
-    document.getElementById("num4").value = '';
-}
-
-
-        function checkResults() {
-    if (round > 10) return;
-
-    const num1 = parseFloat(document.getElementById("num1").value);
-    const num2 = parseFloat(document.getElementById("num2").value);
-    const num3 = parseFloat(document.getElementById("num3").value);
-    const num4 = parseFloat(document.getElementById("num4").value);
-
-    const result1 = parseFloat(document.getElementById("result1").value);
-    const result2 = parseFloat(document.getElementById("result2").value);
-    const result3 = parseFloat(document.getElementById("result3").value);
-    const result4 = parseFloat(document.getElementById("result4").value);
-
-    const cond1 = (num1 - num2) === result1;
-    const cond2 = (num1 - num3) === result3;
-    const cond3 = (num3 - num4) === result2;
-    const cond4 = (num2 - num4) === result4;
-
-    if (cond1 && cond2 && cond3 && cond4) {
+      if (correct) {
         score++;
         document.getElementById("score").textContent = "Score: " + score;
+        document.getElementById("answerBox").innerText = "Correct! ✅";
+      } else {
+        const calcNum1 = r1 + userNum2;
+        const calcNum3 = r2 + userNum4;
+        document.getElementById("answerBox").innerText = `❌ Correct Values:\nnum1 = ${calcNum1}, num2 = ${userNum2},\nnum3 = ${calcNumNum3}, num4 = ${userNum4}`;
+      }
     }
-
-    if (round === 10) {
-        alert("Game Over! Final Score: " + score);
-        savePlayerData();
-        document.getElementById("checkBtn").disabled = true;
-        document.getElementById("generateBtn").disabled = true;
-        document.getElementById("restartBtn").disabled = false;
-    } else {
-        round++;
-        document.getElementById("round").textContent = round;
-        operatorGenerated = false;
-        document.getElementById("operator").style.visibility = "hidden";
-        document.getElementById("generateBtn").disabled = false;
-        document.querySelectorAll("input[type=number]").forEach(input => {
-            if (!input.hasAttribute("readonly")) input.value = "";
-        });
-    }
-}
-
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        function savePlayerData() {
-            const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
-            if (currentPlayer) {
-                const playerRef = db.ref('players/' + currentPlayer.name);
-                playerRef.set({
-                    name: currentPlayer.name,
-                    class: currentPlayer.class,
-                    section: currentPlayer.section,
-                    score: score
-                }).then(() => {
-                    console.log('Player data saved to Firebase');
-                }).catch((error) => {
-                    console.error('Error saving data to Firebase: ', error.message);
-                });
-            }
-        }
-
-        function restartGame() {
-            score = 0;
-            round = 1;
-            document.getElementById("score").textContent = "Score: 0";
-            document.getElementById("round").textContent = round;
-            document.getElementById("restartBtn").disabled = false;
-            operatorGenerated = false;
-            document.getElementById("checkBtn").disabled = true;
-            document.getElementById("generateBtn").disabled = false;
-            document.querySelectorAll("input[type=number]").forEach(input => {
-                if (!input.hasAttribute("readonly")) input.value = "";
-            });
-        }
-    </script>
+  </script>
 </body>
 </html>
