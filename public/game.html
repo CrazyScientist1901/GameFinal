@@ -223,82 +223,75 @@
         }
 
         function generatePuzzle() {
-            if (operatorGenerated) return;
+    if (operatorGenerated) return;
 
-            const op = operators[Math.floor(Math.random() * operators.length)];
-            document.getElementById("operator").textContent = op;
-            document.getElementById("operator").style.visibility = "visible";
-            operatorGenerated = true;
-            document.getElementById("checkBtn").disabled = false;
+    const op = '-';
+    document.getElementById("operator").textContent = op;
+    document.getElementById("operator").style.visibility = "visible";
+    operatorGenerated = true;
+    document.getElementById("checkBtn").disabled = false;
 
-            const a1 = Math.floor(Math.random() * 50) + 1;
-            const b1 = Math.floor(Math.random() * 50) + 1;
-            const a2 = Math.floor(Math.random() * 50) + 1;
-            const b2 = Math.floor(Math.random() * 50) + 1;
+    // Generate 4 random results between -50 and 50
+    const result1 = Math.floor(Math.random() * 101) - 50;
+    const result2 = Math.floor(Math.random() * 101) - 50;
+    const result3 = Math.floor(Math.random() * 101) - 50;
+    const result4 = Math.floor(Math.random() * 101) - 50;
 
-            const result1 = calculate(a1, b1, op);
-            const result2 = calculate(a2, b2, op);
-            const result3 = calculate(result1, result2, op);
-            const result4 = calculate(result2, result1, op);
+    // Set result fields
+    document.getElementById("result1").value = result1;
+    document.getElementById("result2").value = result2;
+    document.getElementById("result3").value = result3;
+    document.getElementById("result4").value = result4;
 
-            document.getElementById("result1").value = result1;
-            document.getElementById("result2").value = result2;
-            document.getElementById("result3").value = result3;
-            document.getElementById("result4").value = result4;
+    // Clear number inputs
+    document.getElementById("num1").value = '';
+    document.getElementById("num2").value = '';
+    document.getElementById("num3").value = '';
+    document.getElementById("num4").value = '';
+}
 
-            document.getElementById("num1").value = '';
-            document.getElementById("num2").value = '';
-            document.getElementById("num3").value = '';
-            document.getElementById("num4").value = '';
-        }
 
         function checkResults() {
-            if (round > 10) return;
+    if (round > 10) return;
 
-            const num1 = parseFloat(document.getElementById("num1").value);
-            const num2 = parseFloat(document.getElementById("num2").value);
-            const num3 = parseFloat(document.getElementById("num3").value);
-            const num4 = parseFloat(document.getElementById("num4").value);
+    const num1 = parseFloat(document.getElementById("num1").value);
+    const num2 = parseFloat(document.getElementById("num2").value);
+    const num3 = parseFloat(document.getElementById("num3").value);
+    const num4 = parseFloat(document.getElementById("num4").value);
 
-            const result1 = parseFloat(document.getElementById("result1").value);
-            const result2 = parseFloat(document.getElementById("result2").value);
-            const result3 = parseFloat(document.getElementById("result3").value);
-            const result4 = parseFloat(document.getElementById("result4").value);
+    const result1 = parseFloat(document.getElementById("result1").value);
+    const result2 = parseFloat(document.getElementById("result2").value);
+    const result3 = parseFloat(document.getElementById("result3").value);
+    const result4 = parseFloat(document.getElementById("result4").value);
 
-            const op = document.getElementById("operator").textContent;
+    const cond1 = (num1 - num2) === result1;
+    const cond2 = (num1 - num3) === result3;
+    const cond3 = (num3 - num4) === result2;
+    const cond4 = (num2 - num4) === result4;
 
-            const userResult1 = calculate(num1, num2, op);
-            const userResult2 = calculate(num3, num4, op);
-            const userResult3 = calculate(userResult1, userResult2, op);
-            const userResult4 = calculate(userResult2, userResult1, op);
+    if (cond1 && cond2 && cond3 && cond4) {
+        score++;
+        document.getElementById("score").textContent = "Score: " + score;
+    }
 
-            if (
-                userResult1 === result1 &&
-                userResult2 === result2 &&
-                userResult3 === result3 &&
-                userResult4 === result4
-            ) {
-                score++;
-                document.getElementById("score").textContent = "Score: " + score;
-            }
+    if (round === 10) {
+        alert("Game Over! Final Score: " + score);
+        savePlayerData();
+        document.getElementById("checkBtn").disabled = true;
+        document.getElementById("generateBtn").disabled = true;
+        document.getElementById("restartBtn").disabled = false;
+    } else {
+        round++;
+        document.getElementById("round").textContent = round;
+        operatorGenerated = false;
+        document.getElementById("operator").style.visibility = "hidden";
+        document.getElementById("generateBtn").disabled = false;
+        document.querySelectorAll("input[type=number]").forEach(input => {
+            if (!input.hasAttribute("readonly")) input.value = "";
+        });
+    }
+}
 
-            if (round === 10) {
-                alert("Game Over! Final Score: " + score);
-                savePlayerData();
-                document.getElementById("checkBtn").disabled = true;
-                document.getElementById("generateBtn").disabled = true;
-                document.getElementById("restartBtn").disabled = false;
-            } else {
-                round++;
-                document.getElementById("round").textContent = round;
-                operatorGenerated = false;
-                document.getElementById("operator").style.visibility = "hidden";
-                document.getElementById("generateBtn").disabled = false;
-                document.querySelectorAll("input[type=number]").forEach(input => {
-                    if (!input.hasAttribute("readonly")) input.value = "";
-                });
-            }
-        }
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
