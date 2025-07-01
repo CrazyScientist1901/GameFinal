@@ -124,47 +124,73 @@
     }
 
     function generatePuzzle() {
-      let num1 = Math.floor(Math.random() * 100) + 50;
-      let num2 = Math.floor(Math.random() * 50);
-      let num3 = Math.floor(Math.random() * 100) + 20;
-      let num4 = num3; // Ensures result2 = 0
+      // Generate num1, num2, num3 randomly
+      const num1 = Math.floor(Math.random() * 100) - 50;
+      const num2 = Math.floor(Math.random() * 100) - 50;
+      const num3 = Math.floor(Math.random() * 100) - 50;
 
+      // Derive num4 to ensure all equations are consistent
+      // Equations:
+      // result1 = num1 - num2
+      // result3 = num1 - num3
+      // result2 = num3 - num4
+      // result4 = num2 - num4
+      // => From above, num4 = num3 - result2 = num2 - result4 (ensured by construction)
+
+      const result1 = num1 - num2;
+      const result3 = num1 - num3;
+      const result2 = Math.floor(Math.random() * 50) - 25;
+      const num4 = num3 - result2;
+      const result4 = num2 - num4;
+
+      // Clear previous inputs
       document.getElementById("num1").value = "";
       document.getElementById("num2").value = "";
       document.getElementById("num3").value = "";
       document.getElementById("num4").value = "";
 
-      document.getElementById("result1").value = num1 - num2;
-      document.getElementById("result2").value = num3 - num4;
-      document.getElementById("result3").value = num1 - num3;
-      document.getElementById("result4").value = num2 - num4;
+      // Set results
+      document.getElementById("result1").value = result1;
+      document.getElementById("result2").value = result2;
+      document.getElementById("result3").value = result3;
+      document.getElementById("result4").value = result4;
+
+      // Store actual values for answer checking
+      document.getElementById("num1").dataset.correct = num1;
+      document.getElementById("num2").dataset.correct = num2;
+      document.getElementById("num3").dataset.correct = num3;
+      document.getElementById("num4").dataset.correct = num4;
       document.getElementById("answerBox").innerText = "";
     }
 
     function checkResults() {
-      let userNum1 = parseFloat(document.getElementById("num1").value);
-      let userNum2 = parseFloat(document.getElementById("num2").value);
-      let userNum3 = parseFloat(document.getElementById("num3").value);
-      let userNum4 = parseFloat(document.getElementById("num4").value);
+      const num1 = parseFloat(document.getElementById("num1").value);
+      const num2 = parseFloat(document.getElementById("num2").value);
+      const num3 = parseFloat(document.getElementById("num3").value);
+      const num4 = parseFloat(document.getElementById("num4").value);
 
-      let r1 = parseFloat(document.getElementById("result1").value);
-      let r2 = parseFloat(document.getElementById("result2").value);
-      let r3 = parseFloat(document.getElementById("result3").value);
-      let r4 = parseFloat(document.getElementById("result4").value);
+      const r1 = parseFloat(document.getElementById("result1").value);
+      const r2 = parseFloat(document.getElementById("result2").value);
+      const r3 = parseFloat(document.getElementById("result3").value);
+      const r4 = parseFloat(document.getElementById("result4").value);
 
-      const correct = (userNum1 - userNum2 === r1 &&
-                      userNum3 - userNum4 === r2 &&
-                      userNum1 - userNum3 === r3 &&
-                      userNum2 - userNum4 === r4);
+      const valid = (
+        num1 - num2 === r1 &&
+        num1 - num3 === r3 &&
+        num3 - num4 === r2 &&
+        num2 - num4 === r4
+      );
 
-      if (correct) {
+      if (valid) {
         score++;
         document.getElementById("score").textContent = "Score: " + score;
-        document.getElementById("answerBox").innerText = "Correct! ✅";
+        document.getElementById("answerBox").innerText = "✅ Correct!";
       } else {
-        const calcNum1 = r1 + userNum2;
-        const calcNum3 = r2 + userNum4;
-        document.getElementById("answerBox").innerText = `❌ Correct Values:\nnum1 = ${calcNum1}, num2 = ${userNum2},\nnum3 = ${calcNumNum3}, num4 = ${userNum4}`;
+        const correct1 = document.getElementById("num1").dataset.correct;
+        const correct2 = document.getElementById("num2").dataset.correct;
+        const correct3 = document.getElementById("num3").dataset.correct;
+        const correct4 = document.getElementById("num4").dataset.correct;
+        document.getElementById("answerBox").innerText = `❌ Correct: num1 = ${correct1}, num2 = ${correct2}, num3 = ${correct3}, num4 = ${correct4}`;
       }
     }
   </script>
