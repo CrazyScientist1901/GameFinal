@@ -65,6 +65,12 @@
       margin-top: 10px;
       font-weight: bold;
     }
+    .correct {
+      color: green;
+    }
+    .wrong {
+      color: red;
+    }
   </style>
 </head>
 <body>
@@ -111,7 +117,7 @@
     let round = 1;
     const maxRounds = 10;
     const operators = ['+', '-', '*', '/'];
-    let currentOperator = '-';
+    let currentOperator = '+';
 
     function startGame() {
       const name = document.getElementById("name").value;
@@ -128,91 +134,93 @@
     }
 
     function generatePuzzle() {
-  if (round > maxRounds) {
-    alert("Game Over! Your final score is: " + score);
-    return;
-  }
+      if (round > maxRounds) {
+        alert("Game Over! Your final score is: " + score);
+        return;
+      }
 
-  // Randomly select an operator
-  currentOperator = operators[Math.floor(Math.random() * operators.length)];
-  document.getElementById("operator").textContent = currentOperator;
+      currentOperator = operators[Math.floor(Math.random() * operators.length)];
+      document.getElementById("operator").textContent = currentOperator;
 
-  let num1, num2, num3, num4, result1, result2, result3, result4;
+      let num1, num2, num3, num4, result1, result2, result3, result4;
 
-  switch (currentOperator) {
-    case '+':
-      num2 = Math.floor(Math.random() * 50);
-      result1 = Math.floor(Math.random() * 50);
-      num1 = result1 + num2;
+      switch (currentOperator) {
+        case '+':
+          // Addition logic
+          result1 = Math.floor(Math.random() * 20) + 1;
+          num2 = Math.floor(Math.random() * 20) + 1;
+          num1 = result1 + num2;
 
-      num4 = Math.floor(Math.random() * 50);
-      result2 = Math.floor(Math.random() * 50);
-      num3 = result2 + num4;
+          result2 = Math.floor(Math.random() * 20) + 1;
+          num4 = Math.floor(Math.random() * 20) + 1;
+          num3 = result2 + num4;
 
-      result3 = num1 - num3; // num1 - num3
-      result4 = num2 - num4; // num2 - num4
-      break;
+          result3 = num1 + num3;
+          result4 = num2 + num4;
+          break;
 
-    case '-':
-      num1 = Math.floor(Math.random() * 100) - 50;
-      num2 = Math.floor(Math.random() * 100) - 50;
-      result1 = num1 - num2;
+        case '-':
+          // Subtraction logic
+          result1 = Math.floor(Math.random() * 20) + 1;
+          num2 = Math.floor(Math.random() * 20) + 1;
+          num1 = result1 + num2;
 
-      num3 = Math.floor(Math.random() * 100) - 50;
-      result2 = Math.floor(Math.random() * 50);
-      num4 = num3 - result2;
+          result2 = Math.floor(Math.random() * 20) + 1;
+          num4 = Math.floor(Math.random() * 20) + 1;
+          num3 = result2 + num4;
 
-      result3 = num1 - num3; // num1 - num3
-      result4 = num2 - num4; // num2 - num4
-      break;
+          result3 = num1 - num3;
+          result4 = num2 - num4;
+          break;
 
-    case '*':
-      num2 = Math.floor(Math.random() * 10) + 1;
-      result1 = Math.floor(Math.random() * 10) + 1;
-      num1 = result1 * num2;
+        case '*':
+          // Multiplication logic
+          result1 = Math.floor(Math.random() * 10) + 1;
+          num2 = Math.floor(Math.random() * 10) + 1;
+          num1 = result1 * num2;
 
-      num4 = Math.floor(Math.random() * 10) + 1;
-      result2 = Math.floor(Math.random() * 10) + 1;
-      num3 = result2 * num4;
+          result2 = Math.floor(Math.random() * 10) + 1;
+          num4 = Math.floor(Math.random() * 10) + 1;
+          num3 = result2 * num4;
 
-      result3 = Math.floor(num1 / num3); // num1 / num3
-      result4 = Math.floor(num2 / num4); // num2 / num4
-      break;
+          result3 = num1 * num3;
+          result4 = num2 * num4;
+          break;
 
-    case '/':
-      result1 = Math.floor(Math.random() * 10) + 1;
-      num2 = Math.floor(Math.random() * 10) + 1;
-      num1 = result1 * num2;
+        case '/':
+          // Division logic
+          result1 = Math.floor(Math.random() * 10) + 1;
+          num2 = Math.floor(Math.random() * 10) + 1;
+          num1 = result1 * num2;
 
-      result2 = Math.floor(Math.random() * 10) + 1;
-      num4 = Math.floor(Math.random() * 10) + 1;
-      num3 = result2 * num4;
+          result2 = Math.floor(Math.random() * 10) + 1;
+          num4 = Math.floor(Math.random() * 10) + 1;
+          num3 = result2 * num4;
 
-      result3 = Math.floor(num1 / num3); // num1 / num3
-      result4 = Math.floor(num2 / num4); // num2 / num4
-      break;
-  }
+          result3 = Math.floor(num1 / num3);
+          result4 = Math.floor(num2 / num4);
+          break;
+      }
 
-  // Clear previous inputs
-  document.getElementById("num1").value = "";
-  document.getElementById("num2").value = "";
-  document.getElementById("num3").value = "";
-  document.getElementById("num4").value = "";
+      // Clear previous inputs
+      document.getElementById("num1").value = "";
+      document.getElementById("num2").value = "";
+      document.getElementById("num3").value = "";
+      document.getElementById("num4").value = "";
 
-  // Set results
-  document.getElementById("result1").value = result1;
-  document.getElementById("result2").value = result2;
-  document.getElementById("result3").value = result3;
-  document.getElementById("result4").value = result4;
+      // Set results
+      document.getElementById("result1").value = result1;
+      document.getElementById("result2").value = result2;
+      document.getElementById("result3").value = result3;
+      document.getElementById("result4").value = result4;
 
-  // Store actual values for answer checking
-  document.getElementById("num1").dataset.correct = num1;
-  document.getElementById("num2").dataset.correct = num2;
-  document.getElementById("num3").dataset.correct = num3;
-  document.getElementById("num4").dataset.correct = num4;
-  document.getElementById("answerBox").innerText = "";
-}
-
+      // Store actual values for answer checking
+      document.getElementById("num1").dataset.correct = num1;
+      document.getElementById("num2").dataset.correct = num2;
+      document.getElementById("num3").dataset.correct = num3;
+      document.getElementById("num4").dataset.correct = num4;
+      document.getElementById("answerBox").innerText = "";
+    }
 
     function checkResults() {
       const num1 = parseFloat(document.getElementById("num1").value);
@@ -220,63 +228,52 @@
       const num3 = parseFloat(document.getElementById("num3").value);
       const num4 = parseFloat(document.getElementById("num4").value);
 
-      const r1 = parseFloat(document.getElementById("result1").value);
-      const r2 = parseFloat(document.getElementById("result2").value);
-      const r3 = parseFloat(document.getElementById("result3").value);
-      const r4 = parseFloat(document.getElementById("result4").value);
+      const correct1 = parseFloat(document.getElementById("num1").dataset.correct);
+      const correct2 = parseFloat(document.getElementById("num2").dataset.correct);
+      const correct3 = parseFloat(document.getElementById("num3").dataset.correct);
+      const correct4 = parseFloat(document.getElementById("num4").dataset.correct);
 
       let valid = false;
 
       switch (currentOperator) {
         case '+':
-          valid = (
-            num1 - num2 === r1 &&
-            num3 - num4 === r2 &&
-            num1 - num3 === r3 &&
-            num2 - num4 === r4
-          );
+          valid = (num1 === correct1 && num2 === correct2 && num3 === correct3 && num4 === correct4);
           break;
         case '-':
-          valid = (
-            num1 - num2 === r1 &&
-            num3 - num4 === r2 &&
-            num1 - num3 === r3 &&
-            num2 - num4 === r4
-          );
+          valid = (num1 === correct1 && num2 === correct2 && num3 === correct3 && num4 === correct4);
           break;
         case '*':
-          valid = (
-            num1 / num2 === r1 &&
-            num3 / num4 === r2 &&
-            Math.floor(num1 / num3) === r3 &&
-            Math.floor(num2 / num4) === r4
-          );
+          valid = (num1 === correct1 && num2 === correct2 && num3 === correct3 && num4 === correct4);
           break;
         case '/':
-          valid = (
-            num1 / num2 === r1 &&
-            num3 / num4 === r2 &&
-            Math.floor(num1 / num3) === r3 &&
-            Math.floor(num2 / num4) === r4
-          );
+          valid = (num1 === correct1 && num2 === correct2 && num3 === correct3 && num4 === correct4);
           break;
       }
 
+      const answerBox = document.getElementById("answerBox");
       if (valid) {
         score++;
         document.getElementById("score").textContent = "Score: " + score;
-        document.getElementById("answerBox").innerText = "✅ Correct!";
+        answerBox.innerText = "Correct!";
+        answerBox.className = "correct";
       } else {
-        const correct1 = document.getElementById("num1").dataset.correct;
-        const correct2 = document.getElementById("num2").dataset.correct;
-        const correct3 = document.getElementById("num3").dataset.correct;
-        const correct4 = document.getElementById("num4").dataset.correct;
-        document.getElementById("answerBox").innerText = `❌ Correct: num1 = ${correct1}, num2 = ${correct2}, num3 = ${correct3}, num4 = ${correct4}`;
+        answerBox.innerHTML = `Incorrect!<br>Correct answers:<br>
+          num1 = ${correct1}<br>
+          num2 = ${correct2}<br>
+          num3 = ${correct3}<br>
+          num4 = ${correct4}`;
+        answerBox.className = "wrong";
       }
 
       round++;
       document.getElementById("round").textContent = round;
-      generatePuzzle();
+      if (round <= maxRounds) {
+        setTimeout(generatePuzzle, 2000);
+      } else {
+        setTimeout(() => {
+          alert("Game Over! Your final score is: " + score);
+        }, 1000);
+      }
     }
   </script>
 </body>
