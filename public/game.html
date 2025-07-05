@@ -7,27 +7,27 @@
   
   <!-- Firebase SDK v9 (compatible with HTML via CDN) -->
   <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"; // ADD ref, set
+  import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
-      authDomain: "mathgame-d8afe.firebaseapp.com",
-      databaseURL: "https://mathgame-d8afe-default-rtdb.firebaseio.com",
-      projectId: "mathgame-d8afe",
-      storageBucket: "mathgame-d8afe.appspot.com",
-      messagingSenderId: "339478386785",
-      appId: "1:339478386785:web:fe25feb5bcb940c8983220",
-      measurementId: "G-DPJ79JZFQ1"
-    };
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
+    authDomain: "mathgame-d8afe.firebaseapp.com",
+    databaseURL: "https://mathgame-d8afe-default-rtdb.firebaseio.com",
+    projectId: "mathgame-d8afe",
+    storageBucket: "mathgame-d8afe.appspot.com",
+    messagingSenderId: "339478386785",
+    appId: "1:339478386785:web:fe25feb5bcb940c8983220",
+    measurementId: "G-DPJ79JZFQ1"
+  };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-  </script>
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  // Removed getAuth(app) because it's not directly used by the database saving function
+</script>
 
   <style>
     body {
@@ -358,21 +358,24 @@
     }
 
     function savePlayerData() {
-      const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
-      if (currentPlayer) {
-        const playerRef = db.ref('players/' + currentPlayer.name);
-        playerRef.set({
-          name: currentPlayer.name,
-          class: currentPlayer.class,
-          section: currentPlayer.section,
-          score: score
-        }).then(() => {
-          console.log('Player data saved to Firebase');
-        }).catch((error) => {
-          console.error('Error saving data to Firebase: ', error.message);
-        });
-      }
-    }
+  const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+  if (currentPlayer) {
+    // Correct way to get a database reference in v9
+    const database = getDatabase(); // Get the database instance
+    const playerRef = ref(database, 'players/' + currentPlayer.name); // Create a reference
+
+    set(playerRef, { // Use the 'set' function with the reference and data
+      name: currentPlayer.name,
+      class: currentPlayer.class,
+      section: currentPlayer.section,
+      score: score
+    }).then(() => {
+      console.log('Player data saved to Firebase');
+    }).catch((error) => {
+      console.error('Error saving data to Firebase: ', error.message);
+    });
+  }
+}
 
     function restartGame() {
       score = 0;
