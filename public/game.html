@@ -4,6 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Math Game</title>
+   <!-- Firebase SDK v8 (compatible with HTML via CDN) -->
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -111,12 +118,35 @@
       </div>
       <button id="generateBtn" onclick="generatePuzzle()">Generate Puzzle</button>
       <button id="checkBtn" onclick="checkResults()">Check</button>
+       <button id="restartBtn" onclick="restartGame()" disabled>Restart</button>
       <div id="answerBox"></div>
       <p id="score">Score: 0</p>
     </div>
   </div>
 
   <script>
+    // Firebase config
+
+        const firebaseConfig = {
+
+            apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
+
+            authDomain: "mathgame-d8afe.firebaseapp.com",
+
+            databaseURL: "https://mathgame-d8afe-default-rtdb.firebaseio.com",
+
+            projectId: "mathgame-d8afe",
+
+            storageBucket: "mathgame-d8afe.appspot.com",
+
+            messagingSenderId: "339478386785",
+
+            appId: "1:339478386785:web:fe25feb5bcb940c8983220",
+
+            measurementId: "G-DPJ79JZFQ1"
+
+        };
+    
     let score = 0;
     let round = 1;
     const maxRounds = 10;
@@ -315,12 +345,108 @@
 
       // Check if game should end
       if (round > maxRounds) {
-        setTimeout(() => {
-          alert("Game Over! Your final score is: " + score);
-          document.getElementById("game").style.display = "none";
-        }, 500);
-      }
+        alert("Game Over! Final Score: " + score);
+
+                savePlayerData();
+
+                document.getElementById("checkBtn").disabled = true;
+
+                document.getElementById("generateBtn").disabled = true;
+
+                document.getElementById("restartBtn").disabled = false;
+
+            } else {
+
+                round++;
+
+                document.getElementById("round").textContent = round;
+
+                operatorGenerated = false;
+
+                document.getElementById("operator").style.visibility = "hidden";
+
+                document.getElementById("generateBtn").disabled = false;
+
+                document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
+
+            }
+
+        }
+
+        firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.database();
+
+
+
+
+
+        function savePlayerData() {
+
+    console.log("Trying to save data..."); // Add this
+
+    const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+
+    if (currentPlayer) {
+
+        const playerRef = db.ref('players/' + currentPlayer.name);
+
+        playerRef.set({
+
+            name: currentPlayer.name,
+
+            class: currentPlayer.class,
+
+            section: currentPlayer.section,
+
+            score: score
+
+        }).then(() => {
+
+            console.log('Player data saved to Firebase');
+
+        }).catch((error) => {
+
+            console.error('Error saving data to Firebase: ', error.message);
+
+        });
+
+    } else {
+
+        console.log("No player found in localStorage");
+
     }
-  </script>
+
+}
+
+
+
+
+
+        function restartGame() {
+
+            score = 0;
+
+            round = 1;
+
+            document.getElementById("score").textContent = "Score: 0";
+
+            document.getElementById("round").textContent = round;
+
+            document.getElementById("restartBtn").disabled = false;
+
+            operatorGenerated = false;
+
+            document.getElementById("checkBtn").disabled = true;
+
+            document.getElementById("generateBtn").disabled = false;
+
+            document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
+
+        }
+
+    </script>
+
 </body>
+
 </html>
