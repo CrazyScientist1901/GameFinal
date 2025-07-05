@@ -375,26 +375,44 @@
       }
     }
 
-    function savePlayerData() {
-      const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
-      if (currentPlayer) {
-        // 'db' is now in scope because this function is in the same module
-        set(ref(db, 'players/' + currentPlayer.name), {
-          name: currentPlayer.name,
-          class: currentPlayer.class,
-          section: currentPlayer.section,
-          score: score
-        }).then(() => {
-          console.log('Player data saved to Firebase');
-        }).catch((error) => {
-          console.error('Error saving data to Firebase: ', error.message);
-          // More detailed error logging for debugging
-          if (error.code) {
-              console.error('Firebase error code:', error.code);
-          }
-        });
+  function savePlayerData() {
+  const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+  console.log("Attempting to save player data...");
+  console.log("currentPlayer from localStorage:", currentPlayer);
+
+  if (currentPlayer && currentPlayer.name) {
+    const playerPath = 'players/' + currentPlayer.name;
+    console.log("Firebase path:", playerPath);
+    console.log("Data to be sent:", {
+      name: currentPlayer.name,
+      class: currentPlayer.class,
+      section: currentPlayer.section,
+      score: score,
+      timestamp: new Date().toISOString()
+    });
+
+    set(ref(db, playerPath), {
+      name: currentPlayer.name,
+      class: currentPlayer.class,
+      section: currentPlayer.section,
+      score: score,
+      timestamp: new Date().toISOString()
+    })
+    .then(() => {
+      console.log('Player data saved to Firebase successfully!');
+    })
+    .catch((error) => {
+      console.error('Error saving data to Firebase: ', error.message);
+      if (error.code) {
+          console.error('Firebase error code:', error.code);
       }
-    }
+      alert("Error saving score: " + error.message);
+    });
+  } else {
+      console.warn("Cannot save player data: Current player not found or name is missing.");
+      alert("Cannot save score. Please start a new game with your name.");
+  }
+}
 
     function restartGame() {
       score = 0;
