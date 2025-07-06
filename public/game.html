@@ -373,6 +373,7 @@
         document.getElementById("score").textContent = "Score: " + score;
         answerBox.innerText = "Correct!";
         answerBox.className = "correct";
+          round++
         
         // Disable check button and enable generate button
         document.getElementById("checkBtn").disabled = true;
@@ -384,7 +385,7 @@
           num3 = ${correctNum3}<br>
           num4 = ${correctNum4}`;
         answerBox.className = "wrong";
-        
+        round++
         // Keep check button enabled for retry
         document.getElementById("checkBtn").disabled = true;
         document.getElementById("generateBtn").disabled = false;
