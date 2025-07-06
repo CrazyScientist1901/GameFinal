@@ -103,10 +103,7 @@
         #game {
             display: none;
         }
-        #restartBtn {
-            margin-top: 20px;
-            width: 90%;
-        }
+       
          #answerBox {
       color: green;
       margin-top: 10px;
@@ -180,7 +177,7 @@
             </div>
             <button id="generateBtn" onclick="generatePuzzle()">Generate Puzzle</button>
             <button id="checkBtn" onclick="checkResults()" disabled>Check</button>
-            <button id="restartBtn" onclick="restartGame()" disabled>Restart</button>
+           
             <div id="answerBox"></div>
             <p id="score">Score: 0</p>
         </div>
@@ -217,7 +214,7 @@
             const playerName = document.getElementById("name").value;
             const playerClass = document.getElementById("class").value;
             const playerSection = document.getElementById("section").value;
-            document.getElementById("restartBtn").disabled = true;
+           
 
             if (!playerName || !playerClass || !playerSection) {
                 alert("Please enter all details to start the game");
@@ -421,17 +418,7 @@
 }
 
 
-        function restartGame() {
-            score = 0;
-            round = 1;
-            document.getElementById("score").textContent = "Score: 0";
-            document.getElementById("round").textContent = round;
-            document.getElementById("restartBtn").disabled = false;
-            operatorGenerated = false;
-            document.getElementById("checkBtn").disabled = true;
-            document.getElementById("generateBtn").disabled = false;
-            document.querySelectorAll("input[type=number]").forEach(input => input.value = "");
-        }
+       
     </script>
 </body>
 </html>
