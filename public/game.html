@@ -386,7 +386,9 @@
         answerBox.className = "wrong";
         
         // Keep check button enabled for retry
-        document.getElementById("checkBtn").disabled = false;
+        document.getElementById("checkBtn").disabled = true;
+          document.getElementById("generateBtn").disabled = false;
+          
       }
       
       // Round counter is NOT increased here - only in generatePuzzle()
