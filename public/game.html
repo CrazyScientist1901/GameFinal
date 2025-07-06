@@ -232,7 +232,7 @@
             }));
 
             document.getElementById("game").style.display = "block";
-            operatorGenerated = false;
+            
             score = 0;
             round = 1;
             document.getElementById("score").textContent = "Score: " + score;
@@ -242,6 +242,7 @@
       document.getElementById("generateBtn").disabled = false;
       document.getElementById("checkBtn").disabled = true;
             document.querySelector("button[onclick='startGame()']").disabled = true;
+            genratePuzzle();
         }
 
         function generatePuzzle() {
