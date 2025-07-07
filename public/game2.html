@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Operator Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+       h1 {
+            color: #4A90E2;
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+    
+        p {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+    
+        input[type="text"],
+        input[type="number"] {
+            width: 90%;
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: #4A90E2;
+            outline: none;
+        }
+        .equation {
+            font-size: 24px;
+            margin: 30px 0;
+            letter-spacing: 5px;
+        }
+        .operator-input {
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            text-align: center;
+            margin: 0 5px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+       button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+      .parent {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+      ::placeholder {
+            color: #888;
+            font-style: italic;
+        }
+        #message {
+            font-size: 20px;
+            margin: 20px 0;
+            min-height: 30px;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+        .score {
+            font-size: 18px;
+            margin: 20px 0;
+        }
+      @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+    
+            h1 {
+                font-size: 24px;
+            }
+    
+            input[type="text"],
+            input[type="number"] {
+                font-size: 14px;
+            }
+    
+            button {
+                font-size: 14px;
+                padding: 8px;
+            }
+    
+            .parent {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+  <div id="app"></div>
+    <div class="container">
+        <h1>Math Operator Game</h1>
+        <p>Enter your details to start the game</p>
+        <input type="text" id="name" placeholder="Name">
+        <label for="class">Select Class </label>
+        <select name="class", id="class">
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+        </select>
+        <label for="section">Select Section </label>
+        <select name="section", id="section">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+            <option value="F">F</option>
+        </select>
+      <button onclick="startGame()">Start Game</button>
+
+    
+    <div class="score">
+        Score: <span id="score">0</span> | 
+        Round: <span id="round">1</span> / 10
+    </div>
+    
+    <div id="equation-container" class="equation"></div>
+    
+    <div id="message"></div>
+    
+    <button id="check-btn">Check Answer</button>
+    <button id="new-btn">Next Equation</button>
+    
+    <script>
+        // Game variables
+        let currentEquation = [];
+        let correctOperators = [];
+        let score = 0;
+    
+        let round = 1;
+        
+        // DOM elements
+        const equationContainer = document.getElementById('equation-container');
+        const messageEl = document.getElementById('message');
+        const scoreEl = document.getElementById('score');
+       
+        const roundEl = document.getElementById('round');
+        const checkBtn = document.getElementById('check-btn');
+        const newBtn = document.getElementById('new-btn');
+        
+        // Initialize the game
+        document.addEventListener('DOMContentLoaded', () => {
+            generateEquation();
+            checkBtn.addEventListener('click', checkAnswer);
+            newBtn.addEventListener('click', nextRound);
+            newBtn.style.display = 'inline-block';
+        });
+        
+        // Generate a new random equation with integer results
+        function generateEquation() {
+            // Clear previous equation
+            equationContainer.innerHTML = '';
+            messageEl.textContent = '';
+            messageEl.className = '';
+            
+            // Determine equation structure (3-5 numbers)
+            const numCount = Math.floor(Math.random() * 3) + 3; // 3-5 numbers
+            currentEquation = [];
+            correctOperators = [];
+            
+            // Generate balanced equation with integer results
+            let validEquation = false;
+            let attempts = 0;
+            while (!validEquation && attempts < 50) {
+                attempts++;
+                currentEquation = [];
+                correctOperators = [];
+                
+                // Generate numbers and operators
+                for (let i = 0; i < numCount; i++) {
+                    // Add number (1-20)
+                    const num = Math.floor(Math.random() * 20) + 1;
+                    currentEquation.push(num);
+                    
+                    // Add operator (except after last number)
+                    if (i < numCount - 1) {
+                        let ops = ['+', '-', '*', '/'];
+                        // Avoid division by zero and non-integer division
+                        if (i > 0 && currentEquation[i - 1] === 0) {
+                            ops = ops.filter(op => op !== '/');
+                        }
+                        const op = ops[Math.floor(Math.random() * ops.length)];
+                        correctOperators.push(op);
+                        currentEquation.push(op);
+                    }
+                }
+                
+                // Ensure the equation produces an integer result
+                try {
+                    const result = evaluateWithBodmas(currentEquation.join(''));
+                    if (Number.isInteger(result) && result >= 0) {
+                        validEquation = true;
+                    }
+                } catch (e) {
+                    validEquation = false;
+                }
+            }
+            
+            // Create the display with input boxes for operators
+            for (let i = 0; i < currentEquation.length; i++) {
+                if (i % 2 === 1) {
+                    // This is an operator position (odd index)
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'operator-input';
+                    input.maxLength = 1;
+                    input.dataset.index = (i - 1) / 2; // operator index in correctOperators
+                    equationContainer.appendChild(input);
+                } else {
+                    // This is a number
+                    const span = document.createElement('span');
+                    span.textContent = currentEquation[i];
+                    equationContainer.appendChild(span);
+                }
+            }
+            
+            // Add equals sign and display the answer
+            const equalsSpan = document.createElement('span');
+            equalsSpan.textContent = ' = ';
+            equationContainer.appendChild(equalsSpan);
+            
+            const answerDiv = document.createElement('div');
+            answerDiv.id = 'answer';
+            answerDiv.style.marginTop = '20px';
+            answerDiv.textContent = evaluateWithBodmas(currentEquation.join('')).toString();
+            equationContainer.appendChild(answerDiv);
+        }
+        
+        // Custom evaluation function that ensures integer division
+        function evaluateWithBodmas(equation) {
+            // First evaluate multiplication and division left to right
+            let tokens = equation.split(/([\+\-\*\/])/).filter(token => token.trim() !== '');
+            
+            // Process multiplication and division
+            for (let i = 1; i < tokens.length; i += 2) {
+                const op = tokens[i];
+                if (op === '*' || op === '/') {
+                    const left = parseInt(tokens[i-1]);
+                    const right = parseInt(tokens[i+1]);
+                    let result;
+                    
+                    if (op === '*') {
+                        result = left * right;
+                    } else {
+                        if (right === 0) throw new Error("Division by zero");
+                        if (left % right !== 0) throw new Error("Non-integer division");
+                        result = left / right;
+                    }
+                    
+                    // Replace the operation with result
+                    tokens.splice(i-1, 3, result.toString());
+                    i -= 2; // Adjust index after replacement
+                }
+            }
+            
+            // Now process addition and subtraction
+            let total = parseInt(tokens[0]);
+            for (let i = 1; i < tokens.length; i += 2) {
+                const op = tokens[i];
+                const num = parseInt(tokens[i+1]);
+                
+                if (op === '+') {
+                    total += num;
+                } else if (op === '-') {
+                    total -= num;
+                }
+            }
+            
+            return total;
+        }
+        
+        // Check the user's answer
+        function checkAnswer() {
+            const inputs = document.querySelectorAll('.operator-input');
+            let allFilled = true;
+            let userOperators = [];
+            
+            // Collect user's operators
+            inputs.forEach(input => {
+                const op = input.value.trim();
+                if (!op) allFilled = false;
+                userOperators.push(op);
+            });
+            
+            if (!allFilled) {
+                messageEl.textContent = 'Please fill in all operators!';
+                messageEl.className = 'incorrect';
+                return;
+            }
+            
+            // Verify the equation evaluates correctly with BODMAS rules
+            let correct = false;
+            let userResult = NaN;
+            const correctResult = evaluateWithBodmas(currentEquation.join(''));
+            
+            // Rebuild the equation with user's operators
+            let equationStr = '';
+            let numIndex = 0;
+            let opIndex = 0;
+            
+            for (let i = 0; i < currentEquation.length; i++) {
+                if (i % 2 === 0) {
+                    equationStr += currentEquation[i];
+                    numIndex++;
+                } else {
+                    equationStr += userOperators[opIndex];
+                    opIndex++;
+                }
+            }
+            
+            // Calculate user's version
+            try {
+                userResult = evaluateWithBodmas(equationStr);
+                if (userResult === correctResult) {
+                    correct = true;
+                }
+            } catch (e) {
+                correct = false;
+            }
+            
+            // Update UI based on correctness
+            if (correct) {
+                messageEl.textContent = `Correct! The equation equals ${correctResult}`;
+                messageEl.className = 'correct';
+                score += 1;
+               
+            } else {
+                messageEl.textContent = `Incorrect. Correct operators were: ${correctOperators.join(' ')}. Your result: ${isNaN(userResult) ? 'invalid' : userResult}, Expected: ${correctResult}`;
+                messageEl.className = 'incorrect';
+             
+            }
+            
+            // Update score display
+            scoreEl.textContent = score;
+      
+            roundEl.textContent = round;
+            
+            // Disable inputs after checking
+            inputs.forEach(input => {
+                input.disabled = true;
+            });
+            
+            // Check if the game is over
+            if (round >= 10) {
+                messageEl.textContent += ' Game Over! Your final score is: ' + score;
+                checkBtn.disabled = true;
+                newBtn.style.display = 'none';
+            }
+        }
+        
+        // Move to the next round
+        function nextRound() {
+            if (round < 10) {
+                round++;
+                roundEl.textContent = round;
+                generateEquation();
+                // Enable inputs if they were disabled
+                document.querySelectorAll('.operator-input').forEach(input => {
+                    input.disabled = false;
+                    input.value = '';
+                });
+                messageEl.textContent = '';
+                messageEl.className = '';
+            } else {
+                newBtn.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
+  
