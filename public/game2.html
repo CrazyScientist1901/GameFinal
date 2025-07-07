@@ -328,6 +328,8 @@
             
             let validEquation = false;
             let attempts = 0;
+            document.getElementById("checkBtn").disabled = false;
+                document.getElementById("nextBtn").disabled = true;
             
             while (!validEquation && attempts < 50) {
                 attempts++;
@@ -468,9 +470,13 @@
                 messageEl.textContent = `Correct! The equation equals ${correctResult}`;
                 messageEl.className = 'correct';
                 score += 10;
+                 document.getElementById("checkBtn").disabled = true;
+                document.getElementById("nextBtn").disabled = false;
             } else {
                 messageEl.textContent = `Incorrect. Correct operators were: ${correctOperators.join(' ')}. Your result: ${isNaN(userResult) ? 'invalid' : userResult}, Expected: ${correctResult}`;
                 messageEl.className = 'incorrect';
+                document.getElementById("checkBtn").disabled = true;
+                document.getElementById("nextBtn").disabled = false;
             }
 
             scoreEl.textContent = score;
