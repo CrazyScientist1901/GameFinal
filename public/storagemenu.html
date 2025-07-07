@@ -1,1 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Storage</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
 
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #4A90E2;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 22px;
+            color: #333;
+        }
+
+        #choose {
+            text-align: center;
+        }
+
+      
+       a:link, a:visited {
+         background-color: #f44336;
+          color: white;
+          padding: 14px 25px;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+        }
+      a:hover, a:active {
+  background-color: blue;
+}
+        .center-link {
+            color: #4A90E2;
+            text-decoration: none;
+            margin: 20px 0;
+            display: inline-block;
+        }
+
+        .center-link:hover {
+            color: #357ABD;
+        }
+
+
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 24px;
+            }
+
+            input[type="password"], button {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            button {
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="choose">
+          <div>
+            <h1>Select Game to Check Data</h1>
+            <div>
+            <a href="public/store.html">Math Puzzle Game</a>
+          </div>
+          <div>
+            <a href="public/store2.html">Math Operator Game</a>
+          </div>
+        </div>
+        </div>
+    </div>
+
+    </body>
+</html>
