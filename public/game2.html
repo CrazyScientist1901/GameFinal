@@ -101,15 +101,17 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 8px;
             font-size: 24px;
             margin: 30px 0;
             min-height: 60px;
+            overflow-x: auto;
+            white-space: nowrap;
         }
         
-        .operator-input {
-            width: 50px;
+        .operator-select {
+            width: 60px;
             height: 50px;
             font-size: 22px;
             text-align: center;
@@ -201,8 +203,8 @@
                 gap: 5px;
             }
             
-            .operator-input {
-                width: 40px;
+            .operator-select {
+                width: 50px;
                 height: 40px;
                 font-size: 18px;
             }
@@ -337,7 +339,7 @@
             let validEquation = false;
             let attempts = 0;
             document.getElementById("check-btn").disabled = false;
-                document.getElementById("next-btn").disabled = true;
+            document.getElementById("next-btn").disabled = true;
             
             while (!validEquation && attempts < 50) {
                 attempts++;
@@ -484,7 +486,7 @@
                 messageEl.textContent = `Correct! The equation equals ${correctResult}`;
                 messageEl.className = 'correct';
                 score += 10;
-                 document.getElementById("check-btn").disabled = true;
+                document.getElementById("check-btn").disabled = true;
                 document.getElementById("next-btn").disabled = false;
             } else {
                 messageEl.textContent = `Incorrect. Correct operators were: ${correctOperators.join(' ')}. Your result: ${isNaN(userResult) ? 'invalid' : userResult}, Expected: ${correctResult}`;
@@ -495,8 +497,8 @@
 
             scoreEl.textContent = score;
             
-            inputs.forEach(input => {
-                input.disabled = true;
+            document.querySelectorAll('.operator-select').forEach(select => {
+                select.disabled = true;
             });
 
             if (round >= maxRounds) {
