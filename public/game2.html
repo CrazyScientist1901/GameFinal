@@ -371,12 +371,26 @@
             
             for (let i = 0; i < currentEquation.length; i++) {
                 if (i % 2 === 1) {
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.className = 'operator-input';
-                    input.maxLength = 1;
-                    input.dataset.index = (i - 1) / 2;
-                    equationContainer.appendChild(input);
+                    const select = document.createElement('select');
+                    select.className = 'operator-select';
+                    select.dataset.index = (i - 1) / 2;
+                    
+                    // Add operator options with display symbols
+                    const operators = [
+                        { value: '+', symbol: '+' },
+                        { value: '-', symbol: '-' },
+                        { value: '*', symbol: '×' },
+                        { value: '/', symbol: '÷' }
+                    ];
+                    
+                    operators.forEach(op => {
+                        const option = document.createElement('option');
+                        option.value = op.value;
+                        option.textContent = op.symbol;
+                        select.appendChild(option);
+                    });
+                    
+                    equationContainer.appendChild(select);
                 } else {
                     const span = document.createElement('span');
                     span.textContent = currentEquation[i];
@@ -433,21 +447,13 @@
         }
 
         function checkAnswer() {
-            const inputs = document.querySelectorAll('.operator-input');
-            let allFilled = true;
+            const selects = document.querySelectorAll('.operator-select');
             let userOperators = [];
             
-            inputs.forEach(input => {
-                const op = input.value.trim();
-                if (!op) allFilled = false;
-                userOperators.push(op);
+            selects.forEach(select => {
+                userOperators.push(select.value);
             });
             
-            if (!allFilled) {
-                messageEl.textContent = 'Please fill in all operators!';
-                messageEl.className = 'incorrect';
-                return;
-            }
             
             let correct = false;
             let userResult = NaN;
@@ -508,9 +514,9 @@
                 round++;
                 roundEl.textContent = round;
                 generateEquation();
-                document.querySelectorAll('.operator-input').forEach(input => {
-                    input.disabled = false;
-                    input.value = '';
+                document.querySelectorAll('.operator-select').forEach(select => {
+                    select.disabled = false;
+                    select.value = '+'; // Reset to default
                 });
                 messageEl.textContent = '';
                 messageEl.className = '';
