@@ -1,1 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Game Data</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>    <!-- Add inside <head> -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #4A90E2;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 22px;
+            color: #333;
+        }
+
+        #loginPage, #mainPage {
+            text-align: center;
+        }
+
+        input[type="password"] {
+            padding: 10px;
+            width: 80%;
+            max-width: 300px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #357ABD;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .center-link {
+            color: #4A90E2;
+            text-decoration: none;
+            margin: 20px 0;
+            display: inline-block;
+        }
+
+        .center-link:hover {
+            color: #357ABD;
+        }
+
+        #leaderboard ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #leaderboard li {
+            font-size: 18px;
+            color: #333;
+            margin: 5px 0;
+        }
+
+        .confirm-btn {
+            padding: 10px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .confirm-btn:hover {
+            background-color: #c0392b;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 24px;
+            }
+
+            input[type="password"], button {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            button {
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loginPage">
+            <h1>Enter Password to Access Player Data Storage</h1>
+            <input type="password" id="password" placeholder="Enter Password">
+            <button onclick="checkPassword()">Login</button>
+        </div>
+
+        <div id="mainPage" style="display:none;">
+            <h1>Player Data Storage</h1>
+            <button onclick="downloadExcel()">Download Excel</button>
+            <button onclick="viewLeaderboard()">View Leaderboard</button>
+            <button onclick="clearLeaderboard()">Clear Leaderboard</button>
+
+            <h2>Leaderboard:</h2>
+            <div id="leaderboard"></div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZEagShiHnkkNFOtC5IMR4CMYLmyEE4WM",
+  authDomain: "mathgame2-be1c4.firebaseapp.com",
+  databaseURL: "https://mathgame2-be1c4-default-rtdb.firebaseio.com",
+  projectId: "mathgame2-be1c4",
+  storageBucket: "mathgame2-be1c4.firebasestorage.app",
+  messagingSenderId: "1056837694201",
+  appId: "1:1056837694201:web:1bab0fbe7818de86e0e828",
+  measurementId: "G-Y5L7ZCHBL4"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const correctPassword = "admin123";
+
+        function checkPassword() {
+            const password = document.getElementById("password").value;
+            if (password === correctPassword) {
+                document.getElementById("loginPage").style.display = "none";
+                document.getElementById("mainPage").style.display = "block";
+                viewLeaderboard();
+            } else {
+                alert("Incorrect password. Please try again.");
+            }
+        }
+
+        function downloadExcel() {
+            firebase.database().ref('players').once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    alert("No data to export");
+                    return;
+                }
+
+                const playerArray = Object.values(data);
+                const worksheet = XLSX.utils.json_to_sheet(playerArray);
+                worksheet['!autofilter'] = { ref: worksheet['!ref'] };
+
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Players");
+                XLSX.writeFile(workbook, "PlayerData.xlsx");
+            });
+        }
+
+        function viewLeaderboard() {
+    const leaderboardDiv = document.getElementById("leaderboard");
+    leaderboardDiv.innerHTML = "Loading...";
+
+    firebase.database().ref("players").orderByChild("score").limitToLast(10).once("value", function(snapshot) {
+        const data = snapshot.val();
+        if (!data) {
+            leaderboardDiv.innerHTML = "No data available.";
+            return;
+        }
+
+        const playerList = Object.values(data);
+        playerList.sort((a, b) => b.score - a.score); // Sort by score, descending
+
+        let leaderboardHtml = "<ul>";
+        playerList.forEach(player => {
+            leaderboardHtml += `<li>${player.name} (${player.class} - ${player.section}): ${player.score}</li>`;
+        });
+        leaderboardHtml += "</ul>";
+
+        leaderboardDiv.innerHTML = leaderboardHtml;
+    }, function (error) {
+        console.error("Error reading data: ", error);
+        leaderboardDiv.innerHTML = "Error loading leaderboard.";
+    });
+}
+
+
+        function clearLeaderboard() {
+            if (confirm("Are you sure you want to clear the leaderboard?")) {
+                firebase.database().ref('players').remove().then(() => {
+                    viewLeaderboard();
+                    alert("Leaderboard cleared.");
+                });
+            }
+        }
+    </script>
+</body>
+</html>
