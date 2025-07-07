@@ -13,89 +13,75 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
+            overflow: auto;
         }
 
         .container {
             background-color: #ffffff;
-            padding: 20px;
+            padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             width: 90%;
             max-width: 500px;
+            text-align: center;
         }
 
         h1 {
             color: #4A90E2;
             font-size: 28px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
-        h2 {
-            font-size: 22px;
-            color: #333;
+        .game-links {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 30px;
         }
 
-        #choose {
+        .game-link {
+            background-color: #4A90E2;
+            color: white;
+            padding: 14px 25px;
             text-align: center;
-        }
-
-      
-       a:link, a:visited {
-         background-color: #f44336;
-          color: white;
-          padding: 14px 25px;
-          text-align: center;
-          text-decoration: none;
-          display: inline-block;
-        }
-      a:hover, a:active {
-  background-color: blue;
-}
-        .center-link {
-            color: #4A90E2;
             text-decoration: none;
-            margin: 20px 0;
-            display: inline-block;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: block;
         }
 
-        .center-link:hover {
-            color: #357ABD;
+        .game-link:hover {
+            background-color: #357ABD;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-
-
 
         @media (max-width: 480px) {
             h1 {
                 font-size: 24px;
+                margin-bottom: 20px;
             }
-
-            input[type="password"], button {
-                width: 100%;
-                max-width: 100%;
+            
+            .container {
+                padding: 20px;
             }
-
-            button {
-                margin: 10px 0;
+            
+            .game-link {
+                padding: 12px 20px;
+                font-size: 14px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="choose">
-          <div>
-            <h1>Select Game to Check Data</h1>
-            <div>
-            <a href="public/store.html">Math Puzzle Game</a>
-          </div>
-          <div>
-            <a href="public/store2.html">Math Operator Game</a>
-          </div>
-        </div>
+        <h1>Select Game to Check Data</h1>
+        <div class="game-links">
+            <a href="public/store.html" class="game-link">Math Puzzle Game</a>
+            <a href="public/store2.html" class="game-link">Math Operator Game</a>
         </div>
     </div>
-
-    </body>
+</body>
 </html>
