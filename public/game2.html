@@ -111,12 +111,25 @@
         }
         
         .operator-select {
-            width: 60px;
+            width: 70px;
             height: 50px;
             font-size: 22px;
             text-align: center;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
+            padding: 0 8px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 16px;
+        }
+        
+        .operator-select option {
+            font-size: 22px;
+            padding: 5px;
         }
         
         .score-display {
@@ -204,9 +217,10 @@
             }
             
             .operator-select {
-                width: 50px;
+                width: 60px;
                 height: 40px;
                 font-size: 18px;
+                background-size: 14px;
             }
             
             .action-buttons {
@@ -456,6 +470,13 @@
                 userOperators.push(select.value);
             });
             
+            // Map operator values to display symbols
+            const operatorSymbols = {
+                '+': '+',
+                '-': '-',
+                '*': '×',
+                '/': '÷'
+            };
             
             let correct = false;
             let userResult = NaN;
@@ -489,7 +510,11 @@
                 document.getElementById("check-btn").disabled = true;
                 document.getElementById("next-btn").disabled = false;
             } else {
-                messageEl.textContent = `Incorrect. Correct operators were: ${correctOperators.join(' ')}. Your result: ${isNaN(userResult) ? 'invalid' : userResult}, Expected: ${correctResult}`;
+                // Convert correct operators to display symbols
+                const displayCorrectOperators = correctOperators.map(op => operatorSymbols[op]);
+                const displayUserOperators = userOperators.map(op => operatorSymbols[op]);
+                
+                messageEl.textContent = `Incorrect. Correct operators were: ${displayCorrectOperators.join(' ')}. Your operators: ${displayUserOperators.join(' ')}. Your result: ${isNaN(userResult) ? 'invalid' : userResult}, Expected: ${correctResult}`;
                 messageEl.className = 'incorrect';
                 document.getElementById("check-btn").disabled = true;
                 document.getElementById("next-btn").disabled = false;
