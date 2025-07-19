@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teacher Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="firebase.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .control-panel { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        button { 
+            padding: 10px 15px; 
+            background: #4CAF50; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .game-code { 
+            font-size: 24px; 
+            font-weight: bold; 
+            letter-spacing: 3px; 
+            margin: 20px 0;
+            color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teacher Dashboard</h1>
+    
+    <div class="control-panel">
+        <h2>Game Settings</h2>
+        
+        <h3>Allowed Operations:</h3>
+        <label><input type="checkbox" class="operation" value="+" checked> Addition (+)</label><br>
+        <label><input type="checkbox" class="operation" value="-"> Subtraction (-)</label><br>
+        <label><input type="checkbox" class="operation" value="X"> Multiplication (×)</label><br>
+        <label><input type="checkbox" class="operation" value="÷"> Division (÷)</label>
+        
+        <h3>Number Difficulty:</h3>
+        <select id="difficulty">
+            <option value="1">1-digit numbers</option>
+            <option value="2" selected>2-digit numbers</option>
+            <option value="3">3-digit numbers</option>
+        </select>
+        
+        <h3>Create Game Session:</h3>
+        <input type="text" id="gameCodeInput" placeholder="Enter a 4-digit code">
+        <button onclick="createGame()">Start Game</button>
+        
+        <div id="activeGame" style="display:none;">
+            <h3>Active Game Code:</h3>
+            <div class="game-code" id="gameCodeDisplay"></div>
+            <p>Share this code with your students</p>
+            <button onclick="endGame()">End Game</button>
+        </div>
+    </div>
+
+    <script>
+        let currentGameCode = null;
+        
+        function createGame() {
+            const gameCode = document.getElementById('gameCodeInput').value;
+            if (!gameCode || gameCode.length !== 4) {
+                alert("Please enter a 4-digit game code");
+                return;
+            }
+            
+            // Get selected operations
+            const operations = [];
+            document.querySelectorAll('.operation:checked').forEach(op => {
+                operations.push(op.value);
+            });
+            
+            // Get difficulty
+            const difficulty = document.getElementById('difficulty').value;
+            
+            // Save to Firebase
+            db.ref('games/' + gameCode).set({
+                isActive: true,
+                operations: operations,
+                difficulty: difficulty,
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                currentGameCode = gameCode;
+                document.getElementById('gameCodeDisplay').textContent = gameCode;
+                document.getElementById('activeGame').style.display = 'block';
+                alert("Game started successfully!");
+            });
+        }
+        
+        function endGame() {
+            if (!currentGameCode) return;
+            
+            db.ref('games/' + currentGameCode).update({
+                isActive: false
+            }).then(() => {
+                alert("Game ended successfully!");
+                document.getElementById('activeGame').style.display = 'none';
+                currentGameCode = null;
+            });
+        }
+    </script>
+</body>
+</html>
