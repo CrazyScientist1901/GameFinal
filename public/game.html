@@ -6,7 +6,6 @@
     <title>Math Game</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="firebase.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -93,6 +92,7 @@
             color: green;
             margin-top: 10px;
             font-weight: bold;
+            min-height: 60px;
         }
         .correct {
             color: green;
@@ -148,9 +148,9 @@
         </select>
         <button onclick="startGame()">Start Game</button>
         <div class="game-info">
-            <p>Game Code: <strong id="displayGameCode"></strong></p>
-            <p>Allowed Operations: <span id="displayOperations"></span></p>
-            <p>Difficulty: <span id="displayDifficulty"></span>-digit numbers</p>
+            <p>Game Code: <strong id="displayGameCode">Loading...</strong></p>
+            <p>Allowed Operations: <span id="displayOperations">Loading...</span></p>
+            <p>Difficulty: <span id="displayDifficulty">Loading...</span>-digit numbers</p>
         </div>
         
         <div id="game" style="display: none;">
@@ -170,7 +170,7 @@
                 <input type="number" id="result4" placeholder="Result 4" readonly>
                 <span id="operator" class="operator">-</span>
             </div>
-            <button id="generateBtn" onclick="generatePuzzle()">Generate Puzzle</button>
+            <button id="generateBtn" onclick="generatePuzzle()" disabled>Generate Puzzle</button>
             <button id="checkBtn" onclick="checkResults()" disabled>Check</button>
             
             <div id="answerBox"></div>
@@ -179,6 +179,21 @@
     </div>
 
     <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         // Game state variables
         let score = 0;
         let round = 1;
@@ -187,16 +202,15 @@
         let correctNum1, correctNum2, correctNum3, correctNum4;
         let result1, result2, result3, result4;
         
-        // Game settings from teacher
-        let allowedOperations = ['+', '-', 'X', '÷']; // Default
-        let difficulty = 2; // Default to 2-digit numbers
+        // Game settings
+        let allowedOperations = ['+', '-', 'X', '÷'];
+        let difficulty = 2;
         let gameCode = '';
         
         // DOM elements
         const displayGameCode = document.getElementById('displayGameCode');
         const displayOperations = document.getElementById('displayOperations');
         const displayDifficulty = document.getElementById('displayDifficulty');
-        const db = firebase.database();
 
         function startGame() {
             const playerName = document.getElementById("name").value;
@@ -217,26 +231,28 @@
 
             document.getElementById("game").style.display = "block";
             
+            // Reset game state
             score = 0;
             round = 1;
             document.getElementById("score").textContent = "Score: " + score;
             document.getElementById("round").textContent = round;
             document.getElementById("answerBox").textContent = "";
             
+            // Enable generate button
             document.getElementById("generateBtn").disabled = false;
             document.getElementById("checkBtn").disabled = true;
             document.querySelector("button[onclick='startGame()']").disabled = true;
+            
+            // Generate first puzzle
             generatePuzzle();
         }
         
-        // Initialize game with teacher settings
         function initGame() {
             const settings = JSON.parse(localStorage.getItem('gameSettings'));
             gameCode = localStorage.getItem('currentGame');
             
             if (!settings || !gameCode) {
                 alert("No game settings found. Please join a game first.");
-                window.location.href = "student-join.html";
                 return;
             }
             
@@ -255,12 +271,7 @@
             document.getElementById('num3').max = maxNumber;
             document.getElementById('num4').max = maxNumber;
             
-            // Check if game is still active
-            monitorGameStatus();
-        }
-        
-        // Monitor if teacher ends the game
-        function monitorGameStatus() {
+            // Monitor game status
             db.ref('games/' + gameCode).on('value', (snapshot) => {
                 const game = snapshot.val();
                 if (!game || !game.isActive) {
@@ -270,16 +281,15 @@
             });
         }
         
-        // Generate random number based on difficulty
         function getRandomNumber(max) {
             const min = Math.pow(10, difficulty - 1);
-            const adjustedMax = max || (Math.pow(10, difficulty) - 1;
+            const adjustedMax = max || (Math.pow(10, difficulty) - 1);
             return Math.floor(Math.random() * (adjustedMax - min + 1)) + min;
         }
         
         function generatePuzzle() {
             if (round > maxRounds) {
-                savePlayerData(); // Save the player's score
+                savePlayerData();
                 setTimeout(() => {
                     alert("Game Over! Your final score is: " + score);
                     document.getElementById("game").style.display = "none";
@@ -292,11 +302,11 @@
             document.getElementById("generateBtn").disabled = true;
             document.getElementById("checkBtn").disabled = false;
             
-            // Select a random operator from allowed operations
+            // Select random operator
             currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
             document.getElementById("operator").textContent = currentOperator;
             
-            // Clear previous inputs and answer box
+            // Clear inputs
             document.getElementById("num1").value = "";
             document.getElementById("num2").value = "";
             document.getElementById("num3").value = "";
@@ -304,7 +314,7 @@
             document.getElementById("answerBox").textContent = "";
             document.getElementById("answerBox").className = "";
             
-            // Generate numbers based on difficulty
+            // Generate numbers
             switch (currentOperator) {
                 case '+':
                     correctNum1 = getRandomNumber();
@@ -338,7 +348,7 @@
                     break;
                 case '÷':
                     correctNum2 = getRandomNumber();
-                    result1 = getRandomNumber(5); // Keep division results reasonable
+                    result1 = getRandomNumber(5);
                     correctNum1 = result1 * correctNum2;
                     correctNum4 = getRandomNumber();
                     result2 = getRandomNumber(5);
@@ -348,7 +358,7 @@
                     break;
             }
             
-            // Set the values for the readonly result boxes
+            // Set result values
             document.getElementById("result1").value = result1;
             document.getElementById("result2").value = result2;
             document.getElementById("result3").value = result3.toFixed(2);
@@ -361,7 +371,6 @@
             const num3 = parseFloat(document.getElementById("num3").value);
             const num4 = parseFloat(document.getElementById("num4").value);
             const answerBox = document.getElementById("answerBox");
-            let allCorrect = true;
             
             if (isNaN(num1) || isNaN(num2) || isNaN(num3) || isNaN(num4)) {
                 answerBox.innerText = "Please fill in all numbers!";
@@ -369,6 +378,7 @@
                 return;
             }
             
+            let allCorrect = true;
             switch(currentOperator) {
                 case '+':
                     allCorrect = (num1 + num2 === result1) && 
@@ -405,10 +415,6 @@
                 document.getElementById("score").textContent = "Score: " + score;
                 answerBox.innerText = "Correct!";
                 answerBox.className = "correct";
-                round++;
-                
-                document.getElementById("checkBtn").disabled = true;
-                document.getElementById("generateBtn").disabled = false;
             } else {
                 answerBox.innerHTML = `Incorrect!<br>Correct answers:<br>
                     num1 = ${correctNum1}<br>
@@ -416,29 +422,23 @@
                     num3 = ${correctNum3}<br>
                     num4 = ${correctNum4}`;
                 answerBox.className = "wrong";
-                round++;
-                
-                document.getElementById("checkBtn").disabled = true;
-                document.getElementById("generateBtn").disabled = false;
             }
+            
+            round++;
+            document.getElementById("checkBtn").disabled = true;
+            document.getElementById("generateBtn").disabled = false;
         }
 
         function savePlayerData() {
             const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
             if (currentPlayer) {
+                currentPlayer.score = score;
+                localStorage.setItem("currentPlayer", JSON.stringify(currentPlayer));
+                
                 const playerRef = db.ref('players/' + currentPlayer.name);
-                playerRef.set({
-                    name: currentPlayer.name,
-                    class: currentPlayer.class,
-                    section: currentPlayer.section,
-                    score: score
-                }).then(() => {
-                    console.log('Player data saved to Firebase');
-                }).catch((error) => {
-                    console.error('Error saving data to Firebase: ', error.message);
-                });
-            } else {
-                console.log("No player found in localStorage");
+                playerRef.set(currentPlayer)
+                    .then(() => console.log('Player data saved to Firebase'))
+                    .catch(error => console.error('Error saving data:', error));
             }
         }
         
