@@ -194,6 +194,38 @@
         const displayGameCode = document.getElementById('displayGameCode');
         const displayOperations = document.getElementById('displayOperations');
         const displayDifficulty = document.getElementById('displayDifficulty');
+
+        function startGame() {
+            const playerName = document.getElementById("name").value;
+            const playerClass = document.getElementById("class").value;
+            const playerSection = document.getElementById("section").value;
+           
+
+            if (!playerName || !playerClass || !playerSection) {
+                alert("Please enter all details to start the game");
+                return;
+            }
+
+            localStorage.setItem("currentPlayer", JSON.stringify({
+                name: playerName,
+                class: playerClass,
+                section: playerSection,
+                score: 0
+            }));
+
+            document.getElementById("game").style.display = "block";
+            
+            score = 0;
+            round = 1;
+            document.getElementById("score").textContent = "Score: " + score;
+      document.getElementById("round").textContent = round;
+      document.getElementById("answerBox").textContent = "";
+      
+      document.getElementById("generateBtn").disabled = false;
+      document.getElementById("checkBtn").disabled = true;
+            document.querySelector("button[onclick='startGame()']").disabled = true;
+            genratePuzzle();
+        }
         
         // Initialize game with teacher settings
         function initGame() {
@@ -245,12 +277,14 @@
         
         function generatePuzzle() {
             if (round > maxRounds) {
-                savePlayerData();
+                savePlayerData(); // Save the player's score
                 setTimeout(() => {
                     alert("Game Over! Your final score is: " + score);
-                }, 500);
+                    document.getElementById("game").style.display = "none";
+                    document.querySelector("button[onclick='startGame()']").disabled = false;
+                    }, 500);
                 return;
-            }
+                }
             
             document.getElementById("round").textContent = round;
             document.getElementById("generateBtn").disabled = true;
@@ -388,19 +422,23 @@
         }
 
         function savePlayerData() {
-            const gameCode = localStorage.getItem('currentGame');
-            const playerData = {
-                name: "Student", // You can modify this to collect student names
-                score: score,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            if (gameCode) {
-                db.ref('gameResults/' + gameCode).push(playerData)
-                    .then(() => console.log('Score saved successfully'))
-                    .catch(error => console.error('Error saving score:', error));
-            }
-        }
+    console.log("Trying to save data..."); // Add this
+    const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+    if (currentPlayer) {
+        const playerRef = db.ref('players/' + currentPlayer.name);
+        playerRef.set({
+            name: currentPlayer.name,
+            class: currentPlayer.class,
+            section: currentPlayer.section,
+            score: score
+        }).then(() => {
+            console.log('Player data saved to Firebase');
+        }).catch((error) => {
+            console.error('Error saving data to Firebase: ', error.message);
+        });
+    } else {
+        console.log("No player found in localStorage");
+    }
         
         // Initialize the game when page loads
         window.onload = initGame;
