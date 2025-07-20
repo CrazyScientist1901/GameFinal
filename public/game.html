@@ -142,7 +142,7 @@
             <option value="E">E</option>
             <option value="F">F</option>
         </select>
-        <button onclick="startGame()">Start Game</button>
+        <button id="startButton" onclick="startGame()">Start Game</button>
 
         <div id="game">
             <p>Round: <span id="round">1</span> / 10</p>
@@ -170,6 +170,9 @@
     </div>
 
     <script>
+        // Initialize Firebase
+        const db = firebase.database();
+        
         // Game variables
         let score = 0;
         let round = 1;
@@ -178,9 +181,10 @@
         let currentOperator = ' ';
         let correctNum1, correctNum2, correctNum3, correctNum4;
         let result1, result2, result3, result4;
-        const db = firebase.database();
 
         function startGame() {
+            console.log("Start Game button clicked"); // Debug log
+            
             const playerName = document.getElementById("name").value.trim();
             const playerClass = document.getElementById("class").value;
             const playerSection = document.getElementById("section").value;
@@ -208,7 +212,7 @@
             
             document.getElementById("generateBtn").disabled = false;
             document.getElementById("checkBtn").disabled = true;
-            document.querySelector("button[onclick='startGame()']").disabled = true;
+            document.getElementById("startButton").disabled = true;
             
             generatePuzzle();
         }
@@ -224,7 +228,7 @@
                     const player = JSON.parse(localStorage.getItem("currentPlayer"));
                     alert(`Game Over! ${player.name}, your final score is: ${score}`);
                     document.getElementById("game").style.display = "none";
-                    document.querySelector("button[onclick='startGame()']").disabled = false;
+                    document.getElementById("startButton").disabled = false;
                 }, 500);
                 return;
             }
@@ -385,19 +389,14 @@
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
 
-            // Save to Firebase under class/section structure
-            const classSectionRef = db.ref(`classResults/${currentPlayer.class}/${currentPlayer.section}/${playerId}`);
-            
-            classSectionRef.set(playerData)
-                .then(() => {
-                    console.log("Player data saved to class/section node");
-                    // Also save to general players node
-                    db.ref(`players/${playerId}`).set(playerData);
-                })
-                .catch(error => {
-                    console.error("Error saving player data:", error);
-                });
+            // Save to Firebase
+            db.ref(`players/${playerId}`).set(playerData)
+                .then(() => console.log("Player data saved successfully"))
+                .catch(error => console.error("Error saving player data:", error));
         }
+
+        // Debugging: Check if Firebase is initialized
+        console.log("Firebase initialized:", firebase.apps.length > 0);
     </script>
 </body>
 </html>
