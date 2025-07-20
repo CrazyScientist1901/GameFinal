@@ -40,7 +40,7 @@
             font-size: 14px;
             margin-bottom: 15px;
         }
-        input[type="number"] {
+        input[type="number"], input[type="text"], select {
             width: 90%;
             padding: 10px;
             margin: 5px 0;
@@ -49,7 +49,7 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
-        input[type="number"]:focus {
+        input[type="number"]:focus, input[type="text"]:focus, select:focus {
             border-color: #4A90E2;
             outline: none;
         }
@@ -153,27 +153,29 @@
             <p>Difficulty: <span id="displayDifficulty"></span>-digit numbers</p>
         </div>
         
-        <p>Round: <span id="round">1</span> / 10</p>
-        <div class="parent">
-            <input type="number" id="num1" placeholder="Number 1" min="0">
-            <input type="number" id="num2" placeholder="Number 2" min="0">
-            <input type="number" id="result1" placeholder="Result 1" readonly>
+        <div id="game" style="display: none;">
+            <p>Round: <span id="round">1</span> / 10</p>
+            <div class="parent">
+                <input type="number" id="num1" placeholder="Number 1" min="0">
+                <input type="number" id="num2" placeholder="Number 2" min="0">
+                <input type="number" id="result1" placeholder="Result 1" readonly>
+            </div>
+            <div class="parent">
+                <input type="number" id="num3" placeholder="Number 3" min="0">
+                <input type="number" id="num4" placeholder="Number 4" min="0">
+                <input type="number" id="result2" placeholder="Result 2" readonly>
+            </div>
+            <div class="parent">
+                <input type="number" id="result3" placeholder="Result 3" readonly>
+                <input type="number" id="result4" placeholder="Result 4" readonly>
+                <span id="operator" class="operator">-</span>
+            </div>
+            <button id="generateBtn" onclick="generatePuzzle()">Generate Puzzle</button>
+            <button id="checkBtn" onclick="checkResults()" disabled>Check</button>
+            
+            <div id="answerBox"></div>
+            <p id="score">Score: 0</p>
         </div>
-        <div class="parent">
-            <input type="number" id="num3" placeholder="Number 3" min="0">
-            <input type="number" id="num4" placeholder="Number 4" min="0">
-            <input type="number" id="result2" placeholder="Result 2" readonly>
-        </div>
-        <div class="parent">
-            <input type="number" id="result3" placeholder="Result 3" readonly>
-            <input type="number" id="result4" placeholder="Result 4" readonly>
-            <span id="operator" class="operator">-</span>
-        </div>
-        <button id="generateBtn" onclick="generatePuzzle()">Generate Puzzle</button>
-        <button id="checkBtn" onclick="checkResults()" disabled>Check</button>
-        
-        <div id="answerBox"></div>
-        <p id="score">Score: 0</p>
     </div>
 
     <script>
@@ -194,12 +196,12 @@
         const displayGameCode = document.getElementById('displayGameCode');
         const displayOperations = document.getElementById('displayOperations');
         const displayDifficulty = document.getElementById('displayDifficulty');
+        const db = firebase.database();
 
         function startGame() {
             const playerName = document.getElementById("name").value;
             const playerClass = document.getElementById("class").value;
             const playerSection = document.getElementById("section").value;
-           
 
             if (!playerName || !playerClass || !playerSection) {
                 alert("Please enter all details to start the game");
@@ -218,13 +220,13 @@
             score = 0;
             round = 1;
             document.getElementById("score").textContent = "Score: " + score;
-      document.getElementById("round").textContent = round;
-      document.getElementById("answerBox").textContent = "";
-      
-      document.getElementById("generateBtn").disabled = false;
-      document.getElementById("checkBtn").disabled = true;
+            document.getElementById("round").textContent = round;
+            document.getElementById("answerBox").textContent = "";
+            
+            document.getElementById("generateBtn").disabled = false;
+            document.getElementById("checkBtn").disabled = true;
             document.querySelector("button[onclick='startGame()']").disabled = true;
-            genratePuzzle();
+            generatePuzzle();
         }
         
         // Initialize game with teacher settings
@@ -269,10 +271,10 @@
         }
         
         // Generate random number based on difficulty
-        function getRandomNumber() {
-            const max = Math.pow(10, difficulty) - 1;
+        function getRandomNumber(max) {
             const min = Math.pow(10, difficulty - 1);
-            return Math.floor(Math.random() * (max - min + 1)) + min;
+            const adjustedMax = max || (Math.pow(10, difficulty) - 1;
+            return Math.floor(Math.random() * (adjustedMax - min + 1)) + min;
         }
         
         function generatePuzzle() {
@@ -282,9 +284,9 @@
                     alert("Game Over! Your final score is: " + score);
                     document.getElementById("game").style.display = "none";
                     document.querySelector("button[onclick='startGame()']").disabled = false;
-                    }, 500);
+                }, 500);
                 return;
-                }
+            }
             
             document.getElementById("round").textContent = round;
             document.getElementById("generateBtn").disabled = true;
@@ -349,8 +351,8 @@
             // Set the values for the readonly result boxes
             document.getElementById("result1").value = result1;
             document.getElementById("result2").value = result2;
-            document.getElementById("result3").value = result3;
-            document.getElementById("result4").value = result4;
+            document.getElementById("result3").value = result3.toFixed(2);
+            document.getElementById("result4").value = result4.toFixed(2);
         }
            
         function checkResults() {
@@ -422,23 +424,23 @@
         }
 
         function savePlayerData() {
-    console.log("Trying to save data..."); // Add this
-    const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
-    if (currentPlayer) {
-        const playerRef = db.ref('players/' + currentPlayer.name);
-        playerRef.set({
-            name: currentPlayer.name,
-            class: currentPlayer.class,
-            section: currentPlayer.section,
-            score: score
-        }).then(() => {
-            console.log('Player data saved to Firebase');
-        }).catch((error) => {
-            console.error('Error saving data to Firebase: ', error.message);
-        });
-    } else {
-        console.log("No player found in localStorage");
-    }
+            const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+            if (currentPlayer) {
+                const playerRef = db.ref('players/' + currentPlayer.name);
+                playerRef.set({
+                    name: currentPlayer.name,
+                    class: currentPlayer.class,
+                    section: currentPlayer.section,
+                    score: score
+                }).then(() => {
+                    console.log('Player data saved to Firebase');
+                }).catch((error) => {
+                    console.error('Error saving data to Firebase: ', error.message);
+                });
+            } else {
+                console.log("No player found in localStorage");
+            }
+        }
         
         // Initialize the game when page loads
         window.onload = initGame;
