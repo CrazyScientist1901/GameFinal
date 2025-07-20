@@ -7,7 +7,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        /* YOUR ORIGINAL CSS - COMPLETELY PRESERVED */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f3f4f6;
@@ -175,6 +174,7 @@
             
             <div id="answerBox"></div>
             <p id="score">Score: 0</p>
+            <p id="allowedOpsDisplay">Allowed operations: +, -, ×, ÷</p>
         </div>
     </div>
 
@@ -230,8 +230,11 @@
                 }
                 
                 // Set allowed operators from teacher's settings
-                if (gameSettings.allowedOperations) {
+                if (gameSettings.allowedOperations && gameSettings.allowedOperations.length > 0) {
                     allowedOperators = gameSettings.allowedOperations;
+                    // Update display of allowed operations
+                    document.getElementById("allowedOpsDisplay").textContent = 
+                        "Allowed operations: " + allowedOperators.join(", ");
                 }
                 
                 // Initialize game
@@ -240,7 +243,8 @@
                     class: playerClass,
                     section: playerSection,
                     score: 0,
-                    gameCode: gameCode
+                    gameCode: gameCode,
+                    allowedOperations: allowedOperators
                 }));
 
                 document.getElementById("game").style.display = "block";
@@ -255,6 +259,9 @@
                 document.querySelector("button[onclick='startGame()']").disabled = true;
                 
                 generatePuzzle();
+            }).catch(error => {
+                console.error("Error loading game settings:", error);
+                alert("Error loading game settings. Please try again.");
             });
         }
 
@@ -274,6 +281,11 @@
             document.getElementById("checkBtn").disabled = false;
             
             // Select only from allowed operators
+            if (allowedOperators.length === 0) {
+                alert("No operators allowed in this game. Please contact your teacher.");
+                return;
+            }
+            
             currentOperator = allowedOperators[Math.floor(Math.random() * allowedOperators.length)];
             document.getElementById("operator").textContent = currentOperator;
             
@@ -285,6 +297,7 @@
             document.getElementById("answerBox").textContent = "";
             document.getElementById("answerBox").className = "";
             
+            // Generate puzzle based on the selected operator
             switch (currentOperator) {
                 case '+':
                     correctNum1 = getRandomNumber();
@@ -349,6 +362,7 @@
                 return;
             }
             
+            // Validate based on current operator
             switch(currentOperator) {
                 case '+':
                     allCorrect = (num1 + num2 === result1) && 
@@ -413,13 +427,14 @@
                 section: currentPlayer.section,
                 score: score,
                 gameCode: gameCode,
+                allowedOperations: allowedOperators,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
 
             // Save under game code and player ID
             const playerId = Date.now();
             db.ref(`gameResults/${gameCode}/${playerId}`).set(playerData)
-                .then(() => console.log("Score saved"))
+                .then(() => console.log("Score saved successfully"))
                 .catch(error => console.error("Save error:", error));
         }
     </script>
