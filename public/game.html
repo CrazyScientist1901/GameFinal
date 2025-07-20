@@ -1,50 +1,122 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Game</title>
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        /* Your existing CSS styles */
-        body { font-family: Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .container { max-width: 400px; width: 100%; background-color: #fff; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 8px; }
-        /* ... rest of your CSS ... */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #4A90E2;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #game {
+            display: none;
+        }
+        .puzzle-row {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .puzzle-row input {
+            flex: 1;
+            text-align: center;
+        }
+        #answerBox {
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .correct { color: green; }
+        .wrong { color: red; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Math Game</h1>
+        
+        <!-- Login Section -->
         <div id="login">
-            <p>Enter your details to start</p>
+            <p>Enter your details to start playing:</p>
             <input type="text" id="name" placeholder="Your Name" required>
             <select id="class" required>
                 <option value="">Select Class</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
+                <option value="6">Class 6</option>
+                <option value="7">Class 7</option>
+                <option value="8">Class 8</option>
             </select>
             <select id="section" required>
                 <option value="">Select Section</option>
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="C">C</option>
+                <option value="A">Section A</option>
+                <option value="B">Section B</option>
+                <option value="C">Section C</option>
             </select>
             <button id="startBtn">Start Game</button>
         </div>
         
-        <div id="game" style="display:none;">
-            <!-- Your game UI elements -->
-            <p>Round: <span id="round">1</span>/10</p>
-            <!-- ... rest of your game HTML ... -->
-            <p id="score">Score: 0</p>
+        <!-- Game Section -->
+        <div id="game">
+            <p>Round: <span id="round">1</span>/10 | Score: <span id="score">0</span></p>
+            
+            <div class="puzzle-row">
+                <input type="number" id="num1" placeholder="Number" min="0">
+                <input type="number" id="num2" placeholder="Number" min="0">
+                <input type="number" id="result1" placeholder="Result" readonly>
+            </div>
+            
+            <div class="puzzle-row">
+                <input type="number" id="num3" placeholder="Number" min="0">
+                <input type="number" id="num4" placeholder="Number" min="0">
+                <input type="number" id="result2" placeholder="Result" readonly>
+            </div>
+            
+            <div class="puzzle-row">
+                <input type="number" id="result3" placeholder="Result" readonly>
+                <input type="number" id="result4" placeholder="Result" readonly>
+                <span id="operator" style="flex:1; text-align:center; font-size:24px;">+</span>
+            </div>
+            
+            <button id="generateBtn">Generate Puzzle</button>
+            <button id="checkBtn" disabled>Check Answer</button>
+            
+            <div id="answerBox"></div>
         </div>
     </div>
 
     <script>
-        // 1. FIRST - Initialize Firebase properly
+        // 1. Initialize Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
             authDomain: "mathgame-d8afe.firebaseapp.com",
@@ -56,111 +128,264 @@
             measurementId: "G-DPJ79JZFQ1"
         };
         
-        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
 
-        // 2. Game Variables
+        // 2. Game State Variables
         let score = 0;
         let round = 1;
         const maxRounds = 10;
-        
-        // 3. DOM Elements
-        const startBtn = document.getElementById('startBtn');
-        const gameDiv = document.getElementById('game');
-        const loginDiv = document.getElementById('login');
+        let currentOperator = '+';
+        let correctAnswers = {};
+        const operators = ['+', '-', '×', '÷'];
 
-        // 4. Event Listeners - MODERN WAY (better than onclick in HTML)
+        // 3. DOM Elements
+        const loginDiv = document.getElementById('login');
+        const gameDiv = document.getElementById('game');
+        const startBtn = document.getElementById('startBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const checkBtn = document.getElementById('checkBtn');
+
+        // 4. Event Listeners
         startBtn.addEventListener('click', startGame);
+        generateBtn.addEventListener('click', generatePuzzle);
+        checkBtn.addEventListener('click', checkAnswer);
 
         // 5. Main Game Functions
         function startGame() {
-            console.log("Start Game clicked"); // Debug
-            
             const name = document.getElementById('name').value.trim();
             const cls = document.getElementById('class').value;
             const section = document.getElementById('section').value;
             
-            // Validation
             if (!name || !cls || !section) {
-                alert("Please fill all fields!");
+                alert('Please fill in all fields!');
                 return;
             }
             
-            // Save player data
-            const playerData = {
+            // Save player info
+            localStorage.setItem('player', JSON.stringify({
                 name: name,
                 class: cls,
-                section: section,
-                score: 0,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
+                section: section
+            }));
             
-            // Show game UI
+            // Switch to game view
             loginDiv.style.display = 'none';
             gameDiv.style.display = 'block';
             
             // Initialize game
-            resetGame();
+            score = 0;
+            round = 1;
+            updateScore();
             generatePuzzle();
         }
 
-        function resetGame() {
-            score = 0;
-            round = 1;
-            document.getElementById('score').textContent = `Score: ${score}`;
-            document.getElementById('round').textContent = round;
-        }
-
         function generatePuzzle() {
-            // Your puzzle generation logic
-            console.log("Generating puzzle...");
-            
-            // When game ends:
             if (round > maxRounds) {
                 endGame();
                 return;
             }
             
-            // ... rest of your puzzle logic
+            // Update round display
+            document.getElementById('round').textContent = round;
+            
+            // Random operator
+            currentOperator = operators[Math.floor(Math.random() * operators.length)];
+            document.getElementById('operator').textContent = currentOperator;
+            
+            // Generate numbers based on operation
+            switch(currentOperator) {
+                case '+':
+                    correctAnswers = generateAdditionPuzzle();
+                    break;
+                case '-':
+                    correctAnswers = generateSubtractionPuzzle();
+                    break;
+                case '×':
+                    correctAnswers = generateMultiplicationPuzzle();
+                    break;
+                case '÷':
+                    correctAnswers = generateDivisionPuzzle();
+                    break;
+            }
+            
+            // Set results
+            document.getElementById('result1').value = correctAnswers.result1;
+            document.getElementById('result2').value = correctAnswers.result2;
+            document.getElementById('result3').value = correctAnswers.result3;
+            document.getElementById('result4').value = correctAnswers.result4;
+            
+            // Clear inputs and enable check button
+            document.getElementById('num1').value = '';
+            document.getElementById('num2').value = '';
+            document.getElementById('num3').value = '';
+            document.getElementById('num4').value = '';
+            document.getElementById('answerBox').textContent = '';
+            document.getElementById('answerBox').className = '';
+            
+            generateBtn.disabled = true;
+            checkBtn.disabled = false;
+        }
+
+        function checkAnswer() {
+            const num1 = parseInt(document.getElementById('num1').value) || 0;
+            const num2 = parseInt(document.getElementById('num2').value) || 0;
+            const num3 = parseInt(document.getElementById('num3').value) || 0;
+            const num4 = parseInt(document.getElementById('num4').value) || 0;
+            const answerBox = document.getElementById('answerBox');
+            
+            let isCorrect = false;
+            
+            switch(currentOperator) {
+                case '+':
+                    isCorrect = (num1 + num2 === correctAnswers.result1) &&
+                                (num3 + num4 === correctAnswers.result2) &&
+                                (num1 + num3 === correctAnswers.result3) &&
+                                (num2 + num4 === correctAnswers.result4);
+                    break;
+                case '-':
+                    isCorrect = (num1 - num2 === correctAnswers.result1) &&
+                                (num3 - num4 === correctAnswers.result2) &&
+                                (num1 - num3 === correctAnswers.result3) &&
+                                (num2 - num4 === correctAnswers.result4);
+                    break;
+                case '×':
+                    isCorrect = (num1 * num2 === correctAnswers.result1) &&
+                                (num3 * num4 === correctAnswers.result2) &&
+                                (num1 * num3 === correctAnswers.result3) &&
+                                (num2 * num4 === correctAnswers.result4);
+                    break;
+                case '÷':
+                    isCorrect = (Math.abs(num1 / num2 - correctAnswers.result1) < 0.001) &&
+                                (Math.abs(num3 / num4 - correctAnswers.result2) < 0.001) &&
+                                (Math.abs(num1 / num3 - correctAnswers.result3) < 0.001) &&
+                                (Math.abs(num2 / num4 - correctAnswers.result4) < 0.001);
+                    break;
+            }
+            
+            if (isCorrect) {
+                score++;
+                answerBox.textContent = 'Correct!';
+                answerBox.className = 'correct';
+            } else {
+                answerBox.innerHTML = `Incorrect!<br>Correct numbers were:<br>
+                    ${correctAnswers.num1}, ${correctAnswers.num2}, ${correctAnswers.num3}, ${correctAnswers.num4}`;
+                answerBox.className = 'wrong';
+            }
+            
+            updateScore();
+            round++;
+            generateBtn.disabled = false;
+            checkBtn.disabled = true;
         }
 
         function endGame() {
-            // Save final score
-            const name = document.getElementById('name').value.trim();
-            const cls = document.getElementById('class').value;
-            const section = document.getElementById('section').value;
-            
-            const playerId = Date.now();
-            const playerData = {
-                name: name,
-                class: cls,
-                section: section,
-                score: score,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            // Save to Firebase
-            db.ref('players/' + playerId).set(playerData)
-                .then(() => {
-                    console.log("Game data saved!");
-                    alert(`Game Over! Your score: ${score}`);
-                })
-                .catch(error => {
-                    console.error("Save error:", error);
-                });
-            
-            // Reset UI
-            gameDiv.style.display = 'none';
-            loginDiv.style.display = 'block';
-            resetGame();
+            const player = JSON.parse(localStorage.getItem('player'));
+            if (player) {
+                const playerData = {
+                    name: player.name,
+                    class: player.class,
+                    section: player.section,
+                    score: score,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                db.ref('players/' + Date.now()).set(playerData)
+                    .then(() => {
+                        alert(`Game Over! ${player.name}, your final score is ${score}/10`);
+                        resetGame();
+                    })
+                    .catch(error => {
+                        console.error('Error saving score:', error);
+                        alert('Game Over! Could not save your score.');
+                        resetGame();
+                    });
+            } else {
+                alert(`Game Over! Your final score is ${score}/10`);
+                resetGame();
+            }
         }
 
-        // 6. Debugging Helpers
-        console.log("Script loaded successfully");
-        console.log("Firebase initialized:", firebase.apps.length > 0);
+        function resetGame() {
+            loginDiv.style.display = 'block';
+            gameDiv.style.display = 'none';
+            document.getElementById('name').value = '';
+            document.getElementById('class').value = '';
+            document.getElementById('section').value = '';
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+        }
+
+        // Puzzle Generation Helpers
+        function generateAdditionPuzzle() {
+            const num1 = Math.floor(Math.random() * 50) + 1;
+            const num2 = Math.floor(Math.random() * 50) + 1;
+            const num3 = Math.floor(Math.random() * 50) + 1;
+            const num4 = Math.floor(Math.random() * 50) + 1;
+            
+            return {
+                num1: num1, num2: num2, num3: num3, num4: num4,
+                result1: num1 + num2,
+                result2: num3 + num4,
+                result3: num1 + num3,
+                result4: num2 + num4
+            };
+        }
+
+        function generateSubtractionPuzzle() {
+            const num1 = Math.floor(Math.random() * 50) + 50;
+            const num2 = Math.floor(Math.random() * 49) + 1;
+            const num3 = Math.floor(Math.random() * 50) + 50;
+            const num4 = Math.floor(Math.random() * 49) + 1;
+            
+            return {
+                num1: num1, num2: num2, num3: num3, num4: num4,
+                result1: num1 - num2,
+                result2: num3 - num4,
+                result3: num1 - num3,
+                result4: num2 - num4
+            };
+        }
+
+        function generateMultiplicationPuzzle() {
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            const num3 = Math.floor(Math.random() * 10) + 1;
+            const num4 = Math.floor(Math.random() * 10) + 1;
+            
+            return {
+                num1: num1, num2: num2, num3: num3, num4: num4,
+                result1: num1 * num2,
+                result2: num3 * num4,
+                result3: num1 * num3,
+                result4: num2 * num4
+            };
+        }
+
+        function generateDivisionPuzzle() {
+            const result1 = Math.floor(Math.random() * 5) + 1;
+            const num2 = Math.floor(Math.random() * 5) + 1;
+            const num1 = result1 * num2;
+            
+            const result2 = Math.floor(Math.random() * 5) + 1;
+            const num4 = Math.floor(Math.random() * 5) + 1;
+            const num3 = result2 * num4;
+            
+            return {
+                num1: num1, num2: num2, num3: num3, num4: num4,
+                result1: result1,
+                result2: result2,
+                result3: num1 / num3,
+                result4: num2 / num4
+            };
+        }
+
+        // Debugging
+        console.log('Game initialized');
     </script>
 </body>
 </html>
