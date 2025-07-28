@@ -312,65 +312,84 @@
             // Generate numbers based on difficulty
             switch (currentOperator) {
                 case '+':
-                    correctNum1 = getRandomNumber(difficulty);
-                    correctNum2 = getRandomNumber(difficulty);
-                    result1 = correctNum1 + correctNum2;
-                    correctNum3 = getRandomNumber(difficulty);
-                    correctNum4 = getRandomNumber(difficulty);
-                    result2 = correctNum3 + correctNum4;
-                    result3 = correctNum1 + correctNum3;
-                    result4 = correctNum2 + correctNum4;
-                    break;
-                case '-':
-                    correctNum1 = getRandomNumber(difficulty);
-                    correctNum2 = getRandomNumber(Math.min(difficulty, correctNum1.toString().length));
-                    if (correctNum2 > correctNum1) {
-                        // Swap to ensure positive result
-                        [correctNum1, correctNum2] = [correctNum2, correctNum1];
-                    }
-                    result1 = correctNum1 - correctNum2;
-                    correctNum3 = getRandomNumber(difficulty);
-                    correctNum4 = getRandomNumber(Math.min(difficulty, correctNum3.toString().length));
-                    if (correctNum4 > correctNum3) {
-                        [correctNum3, correctNum4] = [correctNum4, correctNum3];
-                    }
-                    result2 = correctNum3 - correctNum4;
-                    result3 = correctNum1 - correctNum3;
-                    result4 = correctNum2 - correctNum4;
-                    break;
-                case 'X':
-                    correctNum1 = getRandomNumber(Math.ceil(difficulty/2));
-                    correctNum2 = getRandomNumber(Math.ceil(difficulty/2));
-                    result1 = correctNum1 * correctNum2;
-                    correctNum3 = getRandomNumber(Math.ceil(difficulty/2));
-                    correctNum4 = getRandomNumber(Math.ceil(difficulty/2));
-                    result2 = correctNum3 * correctNum4;
-                    result3 = correctNum1 * correctNum3;
-                    result4 = correctNum2 * correctNum4;
-                    break;
-                case '÷':
-                    correctNum2 = getRandomNumber(Math.ceil(difficulty/2));
-                    while (correctNum2 === 0) correctNum2 = getRandomNumber(Math.ceil(difficulty/2));
-                    const multiplier1 = getRandomNumber(Math.ceil(difficulty/2));
-                    correctNum1 = correctNum2 * multiplier1;
-                    result1 = multiplier1;
-                    
-                    correctNum4 = getRandomNumber(Math.ceil(difficulty/2));
-                    while (correctNum4 === 0) correctNum4 = getRandomNumber(Math.ceil(difficulty/2));
-                    const multiplier2 = getRandomNumber(Math.ceil(difficulty/2));
-                    correctNum3 = correctNum4 * multiplier2;
-                    result2 = multiplier2;
-                    
-                    result3 = correctNum1 / correctNum3;
-                    result4 = correctNum2 / correctNum4;
-                    break;
-            }
-            
+            do {
+                correctNum1 = getRandomNumber(difficulty);
+                correctNum2 = getRandomNumber(difficulty);
+                result1 = correctNum1 + correctNum2;
+            } while (result1 >= maxResult);
+
+            do {
+                correctNum3 = getRandomNumber(difficulty);
+                correctNum4 = getRandomNumber(difficulty);
+                result2 = correctNum3 + correctNum4;
+            } while (result2 >= maxResult);
+
+            result3 = correctNum1 + correctNum3;
+            result4 = correctNum2 + correctNum4;
+            break;
+
+        case '-':
+            do {
+                correctNum1 = getRandomNumber(difficulty);
+                correctNum2 = getRandomNumber(difficulty);
+                if (correctNum2 > correctNum1) [correctNum1, correctNum2] = [correctNum2, correctNum1];
+                result1 = correctNum1 - correctNum2;
+            } while (result1 >= maxResult);
+
+            do {
+                correctNum3 = getRandomNumber(difficulty);
+                correctNum4 = getRandomNumber(difficulty);
+                if (correctNum4 > correctNum3) [correctNum3, correctNum4] = [correctNum4, correctNum3];
+                result2 = correctNum3 - correctNum4;
+            } while (result2 >= maxResult);
+
+            result3 = correctNum1 - correctNum3;
+            result4 = correctNum2 - correctNum4;
+            break;
+
+        case 'X':
+            do {
+                correctNum1 = getRandomNumber(Math.ceil(difficulty / 2));
+                correctNum2 = getRandomNumber(Math.ceil(difficulty / 2));
+                result1 = correctNum1 * correctNum2;
+            } while (result1 >= maxResult);
+
+            do {
+                correctNum3 = getRandomNumber(Math.ceil(difficulty / 2));
+                correctNum4 = getRandomNumber(Math.ceil(difficulty / 2));
+                result2 = correctNum3 * correctNum4;
+            } while (result2 >= maxResult);
+
+            result3 = correctNum1 * correctNum3;
+            result4 = correctNum2 * correctNum4;
+            break;
+
+        case '÷':
+            do {
+                correctNum2 = getRandomNumber(Math.ceil(difficulty / 2)) || 1;
+                const multiplier1 = getRandomNumber(Math.ceil(difficulty / 2));
+                correctNum1 = correctNum2 * multiplier1;
+                result1 = multiplier1;
+            } while (correctNum1 >= maxResult);
+
+            do {
+                correctNum4 = getRandomNumber(Math.ceil(difficulty / 2)) || 1;
+                const multiplier2 = getRandomNumber(Math.ceil(difficulty / 2));
+                correctNum3 = correctNum4 * multiplier2;
+                result2 = multiplier2;
+            } while (correctNum3 >= maxResult);
+
+            result3 = correctNum1 / correctNum3;
+            result4 = correctNum2 / correctNum4;
+            break;
+    }
+
+              
             // Set result values
             document.getElementById("result1").value = result1;
             document.getElementById("result2").value = result2;
-            document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
-            document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
+            document.getElementById("result3").value = result3;
+            document.getElementById("result4").value = result4 ;
         }
            
         function checkResults() {
