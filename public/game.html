@@ -299,17 +299,20 @@ function generatePuzzle() {
     document.getElementById("checkBtn").disabled = false;
 
     currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
-    document.getElementById("operator").textContent = currentOperator;
+    if (currentOperator === 'X') currentOperator = '*';
+    document.getElementById("operator").textContent = currentOperator === '*' ? 'X' : currentOperator;
 
-    document.getElementById("num1").value = "";
-    document.getElementById("num2").value = "";
-    document.getElementById("num3").value = "";
-    document.getElementById("num4").value = "";
-    document.getElementById("answerBox").textContent = "";
-    document.getElementById("answerBox").className = "";
+    // Clear previous inputs
+    ['num1', 'num2', 'num3', 'num4'].forEach(id => document.getElementById(id).value = '');
+    ['result1', 'result2', 'result3', 'result4'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById("answerBox").textContent = '';
+    document.getElementById("answerBox").className = '';
 
     const lowerBound = Math.pow(10, difficulty - 1);
     const upperBound = Math.pow(10, difficulty) - 1;
+    const resultBound = upperBound;
+    const multiplicationSafeUpper = Math.floor(Math.sqrt(resultBound));
+
     let valid = false;
 
     while (!valid) {
@@ -326,31 +329,24 @@ function generatePuzzle() {
 
             case '-':
                 correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum2 = getRandomNumberInRange(lowerBound, correctNum1); // Ensure positive result
+                correctNum2 = getRandomNumberInRange(lowerBound, correctNum1);
                 result1 = correctNum1 - correctNum2;
 
                 correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum4 = getRandomNumberInRange(lowerBound, correctNum3); // Ensure positive result
+                correctNum4 = getRandomNumberInRange(lowerBound, correctNum3);
                 result2 = correctNum3 - correctNum4;
                 break;
 
-            case 'X':
             case '*':
-                // For multiplication, use smaller numbers to prevent overflow
-                const multMaxDigits = Math.ceil(difficulty / 2);
-                const multLower = Math.pow(10, multMaxDigits - 1);
-                const multUpper = Math.pow(10, multMaxDigits) - 1;
-                
-                correctNum1 = getRandomNumberInRange(multLower, multUpper);
-                correctNum2 = getRandomNumberInRange(multLower, multUpper);
+                correctNum1 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                correctNum2 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
                 result1 = correctNum1 * correctNum2;
 
-                correctNum3 = getRandomNumberInRange(multLower, multUpper);
-                correctNum4 = getRandomNumberInRange(multLower, multUpper);
+                correctNum3 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                correctNum4 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
                 result2 = correctNum3 * correctNum4;
                 break;
 
-            case '÷':
             case '/':
                 correctNum2 = getRandomNumberInRange(1, upperBound);
                 result1 = getRandomNumberInRange(lowerBound, upperBound);
@@ -372,23 +368,19 @@ function generatePuzzle() {
                 result3 = correctNum1 - correctNum3;
                 result4 = correctNum2 - correctNum4;
                 break;
-            case 'X':
             case '*':
                 result3 = correctNum1 * correctNum3;
                 result4 = correctNum2 * correctNum4;
                 break;
-            case '÷':
             case '/':
                 result3 = correctNum3 !== 0 ? correctNum1 / correctNum3 : 0;
                 result4 = correctNum4 !== 0 ? correctNum2 / correctNum4 : 0;
                 break;
         }
 
-        // Final validation: Ensure all results are within reasonable range
-        const maxVal = Math.pow(10, difficulty * 2); // More generous limit for multiplication
         if (
-            result1 <= maxVal && result2 <= maxVal &&
-            result3 <= maxVal && result4 <= maxVal
+            result1 <= resultBound && result2 <= resultBound &&
+            result3 <= resultBound && result4 <= resultBound
         ) {
             valid = true;
         }
