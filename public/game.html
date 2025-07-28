@@ -342,13 +342,15 @@ function generatePuzzle() {
         correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
         correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
         result1 = correctNum1 * correctNum2;
-    } while (result1 > resultBound);
+    } while (result1 > resultBound || result1 > 999);
 
     do {
         correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
         correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
         result2 = correctNum3 * correctNum4;
-    } while (result2 > resultBound);
+    } while (result2 > resultBound || result2 > 999);
+    break;
+
     break;
 
 
