@@ -278,38 +278,7 @@
 }
 
 
-        
-        function generatePuzzle() {
-            if (gameEnded) return;
-            
-            if (round > maxRounds) {
-                gameEnded = true;
-                savePlayerData();
-                setTimeout(() => {
-                    alert("Game Over! Your final score is: " + score);
-                    document.getElementById("game").style.display = "none";
-                    document.querySelector("button[onclick='startGame()']").disabled = false;
-                }, 500);
-                return;
-            }
-            const maxResult = Math.pow(10, difficulty);
-            
-            document.getElementById("round").textContent = round;
-            document.getElementById("generateBtn").disabled = true;
-            document.getElementById("checkBtn").disabled = false;
-            
-            // Select random operator
-            currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
-            document.getElementById("operator").textContent = currentOperator;
-            
-            // Clear inputs
-            document.getElementById("num1").value = "";
-            document.getElementById("num2").value = "";
-            document.getElementById("num3").value = "";
-            document.getElementById("num4").value = "";
-            document.getElementById("answerBox").textContent = "";
-            document.getElementById("answerBox").className = "";
-            
+                    
             // Generate numbers based on difficulty
 function generatePuzzle() {
     if (gameEnded) return;
@@ -430,12 +399,6 @@ function generatePuzzle() {
 
 
               
-            // Set result values
-            document.getElementById("result1").value = result1;
-            document.getElementById("result2").value = result2;
-            document.getElementById("result3").value = result3;
-            document.getElementById("result4").value = result4 ;
-        }
            
         function checkResults() {
             const num1 = parseFloat(document.getElementById("num1").value);
