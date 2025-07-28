@@ -299,55 +299,67 @@
         }
 
         function checkResults() {
-            // Get user inputs (allow any digit numbers)
-            const userNum1 = parseInt(document.getElementById("num1").value);
-            const userNum2 = parseInt(document.getElementById("num2").value);
-            const userNum3 = parseInt(document.getElementById("num3").value);
-            const userNum4 = parseInt(document.getElementById("num4").value);
-
-            // Check if all fields are filled
-            if (isNaN(userNum1) || isNaN(userNum2) || isNaN(userNum3) || isNaN(userNum4)) {
-                alert("Please fill in all numbers!");
+            const num1 = parseFloat(document.getElementById("num1").value);
+            const num2 = parseFloat(document.getElementById("num2").value);
+            const num3 = parseFloat(document.getElementById("num3").value);
+            const num4 = parseFloat(document.getElementById("num4").value);
+            const answerBox = document.getElementById("answerBox");
+            
+            if (isNaN(num1) || isNaN(num2) || isNaN(num3) || isNaN(num4)) {
+                answerBox.innerText = "Please fill in all numbers!";
+                answerBox.className = "wrong";
                 return;
             }
-
-            // Verify answers
-            const answerBox = document.getElementById("answerBox");
-            answerBox.innerHTML = "";
-            let isCorrect = true;
-
-            // Check each number against correct values
-            if (userNum1 !== correctNum1) {
-                answerBox.innerHTML += `Number 1 should be ${correctNum1}<br>`;
-                isCorrect = false;
+            
+            let allCorrect = true;
+            switch(currentOperator) {
+                case '+':
+                    allCorrect = (num1 + num2 === result1) && 
+                                 (num3 + num4 === result2) &&
+                                 (num1 + num3 === result3) &&
+                                 (num2 + num4 === result4);
+                    break;
+                case '-':
+                    allCorrect = (num1 - num2 === result1) && 
+                                 (num3 - num4 === result2) &&
+                                 (num1 - num3 === result3) &&
+                                 (num2 - num4 === result4);
+                    break;
+                case 'X':
+                    allCorrect = (num1 * num2 === result1) && 
+                                 (num3 * num4 === result2) &&
+                                 (num1 * num3 === result3) &&
+                                 (num2 * num4 === result4);
+                    break;
+                case '÷':
+                    if (num2 === 0 || num4 === 0 || num3 === 0) {
+                        allCorrect = false;
+                        break;
+                    }
+                    allCorrect = (Math.abs(num1 / num2 - result1) < 0.0001) && 
+                                 (Math.abs(num3 / num4 - result2) < 0.0001) &&
+                                 (Math.abs(num1 / num3 - result3) < 0.0001) &&
+                                 (Math.abs(num2 / num4 - result4) < 0.0001);
+                    break;
             }
-            if (userNum2 !== correctNum2) {
-                answerBox.innerHTML += `Number 2 should be ${correctNum2}<br>`;
-                isCorrect = false;
-            }
-            if (userNum3 !== correctNum3) {
-                answerBox.innerHTML += `Number 3 should be ${correctNum3}<br>`;
-                isCorrect = false;
-            }
-            if (userNum4 !== correctNum4) {
-                answerBox.innerHTML += `Number 4 should be ${correctNum4}<br>`;
-                isCorrect = false;
-            }
-
-            // Update score and UI
-            if (isCorrect) {
-                score += 10;
+            
+            if (allCorrect) {
+                score++;
                 document.getElementById("score").textContent = "Score: " + score;
-                answerBox.textContent = "Correct!";
+                answerBox.innerText = "Correct!";
                 answerBox.className = "correct";
             } else {
+                answerBox.innerHTML = `Incorrect!<br>Correct answers:<br>
+                    num1 = ${correctNum1}<br>
+                    num2 = ${correctNum2}<br>
+                    num3 = ${correctNum3}<br>
+                    num4 = ${correctNum4}`;
                 answerBox.className = "wrong";
             }
-
-            // Prepare for next round
+            
             round++;
-            document.getElementById("generateBtn").disabled = false;
             document.getElementById("checkBtn").disabled = true;
+            document.getElementById("generateBtn").disabled = false;
         }
 
         function savePlayerData() {
