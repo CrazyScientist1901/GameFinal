@@ -311,98 +311,64 @@
             document.getElementById("answerBox").className = "";
             
             // Generate numbers based on difficulty
-const lowerBound = Math.pow(10, difficulty - 1);
-const upperBound = Math.pow(10, difficulty) - 1;
+function generatePuzzle() {
+    const lowerBound = Math.pow(10, difficulty - 1);
+    const upperBound = Math.pow(10, difficulty) - 1;
+    let valid = false;
 
-switch (currentOperator) {
-    case '+':
-        do {
-            correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-            correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-            result1 = correctNum1 + correctNum2;
-        } while (result1 > upperBound);
+    while (!valid) {
+        switch (operator) {
+            case '+':
+                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
+                result1 = correctNum1 + correctNum2;
 
-        do {
-            correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-            correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-            result2 = correctNum3 + correctNum4;
-        } while (result2 > upperBound);
+                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
+                result2 = correctNum3 + correctNum4;
+                break;
 
-        result3 = correctNum1 + correctNum3;
-        result4 = correctNum2 + correctNum4;
+            case '-':
+                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
+                if (correctNum1 < correctNum2) [correctNum1, correctNum2] = [correctNum2, correctNum1];
+                result1 = correctNum1 - correctNum2;
 
-        if (result3 > upperBound || result4 > upperBound) {
-            return generatePuzzle(); // Retry if any result is too big
+                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
+                if (correctNum3 < correctNum4) [correctNum3, correctNum4] = [correctNum4, correctNum3];
+                result2 = correctNum3 - correctNum4;
+                break;
+
+            case '*':
+                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
+                result1 = correctNum1 * correctNum2;
+
+                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
+                result2 = correctNum3 * correctNum4;
+                break;
+
+            case '/':
+                result1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum1 = result1 * correctNum2;
+
+                result2 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum3 = result2 * correctNum4;
+                break;
         }
-        break;
 
-    case '-':
-        do {
-            correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-            correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-        } while (correctNum1 < correctNum2);
-        result1 = correctNum1 - correctNum2;
-
-        do {
-            correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-            correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-        } while (correctNum3 < correctNum4);
-        result2 = correctNum3 - correctNum4;
-
-        result3 = correctNum1 - correctNum3;
-        result4 = correctNum2 - correctNum4;
-
-        if (result3 < 0 || result4 < 0) {
-            return generatePuzzle(); // Retry if any result is negative
-        }
-        break;
-
-    case 'X':
-        do {
-            correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-            correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-            result1 = correctNum1 * correctNum2;
-        } while (result1 > upperBound);
-
-        do {
-            correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-            correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-            result2 = correctNum3 * correctNum4;
-        } while (result2 > upperBound);
-
-        result3 = correctNum1 * correctNum3;
-        result4 = correctNum2 * correctNum4;
-
-        if (result3 > upperBound || result4 > upperBound) {
-            return generatePuzzle(); // Retry if any result is too big
-        }
-        break;
-
-    case '÷':
-        do {
-            result1 = getRandomNumberInRange(lowerBound, upperBound);
-            correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-            correctNum1 = result1 * correctNum2;
-        } while (correctNum1 > upperBound || correctNum1 < lowerBound);
-
-        do {
-            result2 = getRandomNumberInRange(lowerBound, upperBound);
-            correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-            correctNum3 = result2 * correctNum4;
-        } while (correctNum3 > upperBound || correctNum3 < lowerBound);
-
-        result3 = correctNum1 / correctNum3;
-        result4 = correctNum2 / correctNum4;
-
-        // Ensure result3 and result4 are integers within bounds
+        // Validate result ranges
         if (
-            !Number.isInteger(result3) || !Number.isInteger(result4) ||
-            result3 > upperBound || result4 > upperBound
+            result1 >= lowerBound && result1 <= upperBound &&
+            result2 >= lowerBound && result2 <= upperBound
         ) {
-            return generatePuzzle(); // Retry if results invalid
+            valid = true;
         }
-        break;
-}
+    }
 
 
 
