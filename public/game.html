@@ -446,11 +446,11 @@ function generatePuzzle() {
                 answerBox.innerText = "Correct!";
                 answerBox.className = "correct";
             } else {
-                answerBox.innerHTML = `Incorrect!<br>Correct answers:<br>
+                answerBox.innerHTML = Incorrect!<br>Correct answers:<br>
                     num1 = ${correctNum1}<br>
                     num2 = ${correctNum2}<br>
                     num3 = ${correctNum3}<br>
-                    num4 = ${correctNum4}`;
+                    num4 = ${correctNum4};
                 answerBox.className = "wrong";
             }
             
