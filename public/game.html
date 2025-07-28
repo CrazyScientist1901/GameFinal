@@ -311,10 +311,10 @@
             document.getElementById("answerBox").className = "";
             
             // Generate numbers based on difficulty
-            switch (operation) {
-                    const lowerBound = Math.pow(10, difficulty - 1);
-            const upperBound = Math.pow(10, difficulty) - 1;
+const lowerBound = Math.pow(10, difficulty - 1);
+const upperBound = Math.pow(10, difficulty) - 1;
 
+switch (currentOperator) {
     case '+':
         correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
         correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
@@ -332,7 +332,7 @@
         do {
             correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
             correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-        } while (correctNum1 < correctNum2); // ensure result is not negative
+        } while (correctNum1 < correctNum2);
         result1 = correctNum1 - correctNum2;
 
         do {
@@ -345,7 +345,7 @@
         result4 = correctNum2 - correctNum4;
         break;
 
-    case '*':
+    case 'X':
         do {
             correctNum1 = getRandomNumberInRange(Math.ceil(lowerBound / 2), upperBound);
             correctNum2 = getRandomNumberInRange(Math.ceil(lowerBound / 2), upperBound);
@@ -362,7 +362,7 @@
         result4 = correctNum2 * correctNum4;
         break;
 
-    case '/':
+    case '÷':
         do {
             correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
             result1 = getRandomNumberInRange(lowerBound, upperBound);
@@ -379,6 +379,7 @@
         result4 = correctNum2 / correctNum4;
         break;
 }
+
 
 
               
