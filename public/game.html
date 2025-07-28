@@ -312,12 +312,39 @@
             
             // Generate numbers based on difficulty
 function generatePuzzle() {
+    if (gameEnded) return;
+
+    if (round > maxRounds) {
+        gameEnded = true;
+        savePlayerData();
+        setTimeout(() => {
+            alert("Game Over! Your final score is: " + score);
+            document.getElementById("game").style.display = "none";
+            document.querySelector("button[onclick='startGame()']").disabled = false;
+        }, 500);
+        return;
+    }
+
+    document.getElementById("round").textContent = round;
+    document.getElementById("generateBtn").disabled = true;
+    document.getElementById("checkBtn").disabled = false;
+
+    currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
+    document.getElementById("operator").textContent = currentOperator;
+
+    document.getElementById("num1").value = "";
+    document.getElementById("num2").value = "";
+    document.getElementById("num3").value = "";
+    document.getElementById("num4").value = "";
+    document.getElementById("answerBox").textContent = "";
+    document.getElementById("answerBox").className = "";
+
     const lowerBound = Math.pow(10, difficulty - 1);
     const upperBound = Math.pow(10, difficulty) - 1;
     let valid = false;
 
     while (!valid) {
-        switch (operator) {
+        switch (currentOperator) {
             case '+':
                 correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
                 correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
@@ -340,6 +367,7 @@ function generatePuzzle() {
                 result2 = correctNum3 - correctNum4;
                 break;
 
+            case 'X':
             case '*':
                 correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
                 correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
@@ -350,26 +378,55 @@ function generatePuzzle() {
                 result2 = correctNum3 * correctNum4;
                 break;
 
+            case '÷':
             case '/':
+                correctNum2 = getRandomNumberInRange(1, upperBound);
                 result1 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
                 correctNum1 = result1 * correctNum2;
 
+                correctNum4 = getRandomNumberInRange(1, upperBound);
                 result2 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
                 correctNum3 = result2 * correctNum4;
                 break;
         }
 
-        // Validate result ranges
+        // Common Result Calculations
+        switch (currentOperator) {
+            case '+':
+                result3 = correctNum1 + correctNum3;
+                result4 = correctNum2 + correctNum4;
+                break;
+            case '-':
+                result3 = correctNum1 - correctNum3;
+                result4 = correctNum2 - correctNum4;
+                break;
+            case 'X':
+            case '*':
+                result3 = correctNum1 * correctNum3;
+                result4 = correctNum2 * correctNum4;
+                break;
+            case '÷':
+            case '/':
+                result3 = correctNum3 !== 0 ? correctNum1 / correctNum3 : 0;
+                result4 = correctNum4 !== 0 ? correctNum2 / correctNum4 : 0;
+                break;
+        }
+
+        // Final validation: Ensure all results are within difficulty digit range
+        const maxVal = Math.pow(10, difficulty) - 1;
         if (
-            result1 >= lowerBound && result1 <= upperBound &&
-            result2 >= lowerBound && result2 <= upperBound
+            result1 <= maxVal && result2 <= maxVal &&
+            result3 <= maxVal && result4 <= maxVal
         ) {
             valid = true;
         }
     }
 
+    document.getElementById("result1").value = result1;
+    document.getElementById("result2").value = result2;
+    document.getElementById("result3").value = result3;
+    document.getElementById("result4").value = result4;
+}
 
 
               
