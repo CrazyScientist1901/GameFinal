@@ -317,12 +317,12 @@
             document.getElementById("result4").value = result4;
         }
 
-        function checkResults() {
-    // Get user inputs
-    const userNum1 = parseInt(document.getElementById("num1").value) || 0;
-    const userNum2 = parseInt(document.getElementById("num2").value) || 0;
-    const userNum3 = parseInt(document.getElementById("num3").value) || 0;
-    const userNum4 = parseInt(document.getElementById("num4").value) || 0;
+       function checkResults() {
+    // Get user inputs (no digit-length validation)
+    const userNum1 = parseInt(document.getElementById("num1").value);
+    const userNum2 = parseInt(document.getElementById("num2").value);
+    const userNum3 = parseInt(document.getElementById("num3").value);
+    const userNum4 = parseInt(document.getElementById("num4").value);
 
     // Check if all fields are filled
     if (isNaN(userNum1) || isNaN(userNum2) || isNaN(userNum3) || isNaN(userNum4)) {
@@ -332,6 +332,7 @@
 
     // Verify answers
     const answerBox = document.getElementById("answerBox");
+    answerBox.innerHTML = ""; // Clear previous feedback
     let isCorrect = true;
 
     // Check each number against correct values
