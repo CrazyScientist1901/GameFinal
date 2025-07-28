@@ -1,13 +1,141 @@
-<!doctype html>
 <html lang="en">
 <head>
-    <!-- (Previous head content remains exactly the same) -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Game</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="firebase.js"></script>
     <style>
-        /* (Previous CSS remains exactly the same) */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background-color: #ffffff;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+        h1 {
+            color: #4A90E2;
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4A90E2;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #357ABD;
+        }
+        .game-info {
+            background: #f0f8ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        #game {
+            display: none;
+        }
+        .parent {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .operator {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #answerBox {
+            min-height: 60px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .correct { color: green; }
+        .wrong { color: red; }
     </style>    
 </head>
 <body>
-    <!-- (Previous HTML remains exactly the same until the script) -->
+    <div class="container">
+        <h1>Math Game</h1>
+        <div id="setup">
+            <p>Enter your details to start the game</p>
+            <input type="text" id="name" placeholder="Name" required>
+            <select id="class" required>
+                <option value="" disabled selected>Select Class</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+            </select>
+            <select id="section" required>
+                <option value="" disabled selected>Select Section</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="E">E</option>
+                <option value="F">F</option>
+            </select>
+            <button onclick="startGame()">Start Game</button>
+            
+            <div class="game-info">
+                <p>Game Code: <strong id="displayGameCode">Loading...</strong></p>
+                <p>Allowed Operations: <span id="displayOperations">Loading...</span></p>
+                <p>Difficulty: <span id="displayDifficulty">Loading...</span>-digit numbers</p>
+            </div>
+        </div>
+        
+        <div id="game">
+            <p>Round: <span id="round">1</span> / 10</p>
+            <div class="parent">
+                <input type="number" id="num1" placeholder="Number 1">
+                <input type="number" id="num2" placeholder="Number 2">
+                <input type="number" id="result1" placeholder="Result" readonly>
+            </div>
+            <div class="parent">
+                <input type="number" id="num3" placeholder="Number 3">
+                <input type="number" id="num4" placeholder="Number 4">
+                <input type="number" id="result2" placeholder="Result" readonly>
+            </div>
+            <div class="parent">
+                <input type="number" id="result3" placeholder="Result" readonly>
+                <input type="number" id="result4" placeholder="Result" readonly>
+                <span id="operator" class="operator">-</span>
+            </div>
+            <button id="generateBtn" onclick="generatePuzzle()" disabled>Generate Puzzle</button>
+            <button id="checkBtn" onclick="checkResults()" disabled>Check Answer</button>
+            
+            <div id="answerBox"></div>
+            <p id="score">Score: 0</p>
+        </div>
+    </div>
 
     <script>
         let score = 0;
@@ -19,6 +147,61 @@
         let difficulty = 2;
         let allowedOperations = ['+', '-', 'X', '÷'];
         let gameCode = '';
+
+        
+        function startGame() {
+            const playerName = document.getElementById("name").value;
+            const playerClass = document.getElementById("class").value;
+            const playerSection = document.getElementById("section").value;
+
+            if (!playerName || !playerClass || !playerSection) {
+                alert("Please enter all details to start the game");
+                return;
+            }
+
+            localStorage.setItem("currentPlayer", JSON.stringify({
+                name: playerName,
+                class: playerClass,
+                section: playerSection,
+                score: 0
+            }));
+
+            document.getElementById("setup").style.display = "none";
+            document.getElementById("game").style.display = "block";
+            
+            score = 0;
+            round = 1;
+            document.getElementById("score").textContent = "Score: " + score;
+            document.getElementById("round").textContent = round;
+            
+            document.getElementById("generateBtn").disabled = false;
+            generatePuzzle();
+        }
+        
+        function initGame() {
+            const settings = JSON.parse(localStorage.getItem('gameSettings'));
+            gameCode = localStorage.getItem('currentGame');
+            
+            if (!settings || !gameCode) {
+                alert("No game settings found. Please join a game first.");
+                return;
+            }
+            
+            allowedOperations = settings.operations;
+            difficulty = parseInt(settings.difficulty);
+            
+            document.getElementById('displayGameCode').textContent = gameCode;
+            document.getElementById('displayOperations').textContent = allowedOperations.join(', ');
+            document.getElementById('displayDifficulty').textContent = difficulty;
+            
+            db.ref('games/' + gameCode).on('value', (snapshot) => {
+                const game = snapshot.val();
+                if (!game || !game.isActive) {
+                    alert("The teacher has ended this game session.");
+                    window.location.href = "student.html";
+                }
+            });
+        }
 
         // ================== UPDATED FUNCTION ==================
         function getRandomNumber(digits) {
@@ -121,7 +304,24 @@
             document.getElementById("result4").value = result4;
         }
 
-        // (Rest of the functions remain exactly the same: startGame, initGame, savePlayerData)
+         function savePlayerData() {
+            const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+            if (currentPlayer) {
+                currentPlayer.score = score;
+                localStorage.setItem("currentPlayer", JSON.stringify(currentPlayer));
+                
+                const playerRef = db.ref('players/' + currentPlayer.name);
+                playerRef.set(currentPlayer)
+                    .then(() => console.log('Player data saved to Firebase'))
+                    .catch(error => console.error('Error saving data:', error));
+            }
+        }
+        
+        window.onload = initGame;
+    </script>
+</body>
+</html>
+
     </script>
 </body>
 </html>
