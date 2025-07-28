@@ -204,6 +204,19 @@
         }
 
         function getRandomNumber(digits) {
+            if (digits==1){
+                return Math.floor(Math.random() * 10);                
+            }
+            if (digits==2){
+                return Math.floor(Math.random() * 100);                
+            }
+            if (digits==3){
+                return Math.floor(Math.random() * 1000);
+            }
+       
+    }
+
+      /*  function getRandomNumber(digits) {
         // This will ALWAYS return a number with exactly 'digits' digits
         const min = Math.pow(10, digits - 1);
         const max = Math.pow(10, digits) - 1;
@@ -212,7 +225,7 @@
             num = Math.floor(Math.random() * (max - min + 1)) + min;
         } while (num.toString().length !== digits); // Double-check digit count
         return num;
-    }
+    }*/
 
     function generatePuzzle() {
         if (round > maxRounds) {
