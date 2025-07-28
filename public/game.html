@@ -337,15 +337,20 @@ function generatePuzzle() {
                 result2 = correctNum3 - correctNum4;
                 break;
 
-            case '*':
-                correctNum1 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-                correctNum2 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-                result1 = correctNum1 * correctNum2;
+           case '*':
+    do {
+        correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+        correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
+        result1 = correctNum1 * correctNum2;
+    } while (result1 > resultBound);
 
-                correctNum3 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-                correctNum4 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-                result2 = correctNum3 * correctNum4;
-                break;
+    do {
+        correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+        correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
+        result2 = correctNum3 * correctNum4;
+    } while (result2 > resultBound);
+    break;
+
 
             case '/':
                 correctNum2 = getRandomNumberInRange(1, upperBound);
@@ -379,11 +384,12 @@ function generatePuzzle() {
         }
 
         if (
-            result1 <= resultBound && result2 <= resultBound &&
-            result3 <= resultBound && result4 <= resultBound
-        ) {
-            valid = true;
-        }
+    result1 <= resultBound && result2 <= resultBound &&
+    result3 <= resultBound && result4 <= resultBound
+) {
+    valid = true;
+}
+
     }
 
     document.getElementById("result1").value = result1;
@@ -484,3 +490,4 @@ function generatePuzzle() {
     </script>
 </body>
 </html>
+
