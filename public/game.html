@@ -337,15 +337,19 @@ function generatePuzzle() {
                 break;
 
             case 'X':
-            case '*':
-                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-                result1 = correctNum1 * correctNum2;
+                    case '*':
+                        // For multiplication, use smaller numbers to prevent overflow
+                        const multLower = Math.pow(10, Math.max(1, Math.floor(difficulty/2) - 1));
+                        const multUpper = Math.pow(10, Math.ceil(difficulty/2)) - 1;
+                        
+                        correctNum1 = getRandomNumberInRange(multLower, multUpper);
+                        correctNum2 = getRandomNumberInRange(multLower, multUpper);
+                        result1 = correctNum1 * correctNum2;
 
-                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-                result2 = correctNum3 * correctNum4;
-                break;
+                        correctNum3 = getRandomNumberInRange(multLower, multUpper);
+                        correctNum4 = getRandomNumberInRange(multLower, multUpper);
+                        result2 = correctNum3 * correctNum4;
+                        break;
 
             case '÷':
             case '/':
