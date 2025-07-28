@@ -237,16 +237,57 @@
 
             // ================== UPDATED LOGIC ==================
             switch (currentOperator) {
-                case '+':
-                    correctNum1 = getRandomNumber(difficulty);
-                    correctNum2 = getRandomNumber(difficulty);
-                    result1 = correctNum1 + correctNum2;
-                    correctNum3 = getRandomNumber(difficulty);
-                    correctNum4 = getRandomNumber(difficulty);
-                    result2 = correctNum3 + correctNum4;
-                    result3 = correctNum1 + correctNum3;
-                    result4 = correctNum2 + correctNum4;
-                    break;
+        case '+':
+            // Ensure sum stays within digit limit
+            do {
+                correctNum1 = getRandomNumber(difficulty);
+                correctNum2 = getRandomNumber(difficulty);
+                result1 = correctNum1 + correctNum2;
+            } while (result1.toString().length > difficulty);
+            
+            do {
+                correctNum3 = getRandomNumber(difficulty);
+                correctNum4 = getRandomNumber(difficulty);
+                result2 = correctNum3 + correctNum4;
+            } while (result2.toString().length > difficulty);
+            
+            result3 = correctNum1 + correctNum3;
+            result4 = correctNum2 + correctNum4;
+            break;
+            
+        case 'X':
+            // Ensure product stays within digit limit
+            do {
+                correctNum1 = getRandomNumber(difficulty);
+                correctNum2 = getRandomNumber(difficulty);
+                result1 = correctNum1 * correctNum2;
+            } while (result1.toString().length > difficulty);
+            
+            do {
+                correctNum3 = getRandomNumber(difficulty);
+                correctNum4 = getRandomNumber(difficulty);
+                result2 = correctNum3 * correctNum4;
+            } while (result2.toString().length > difficulty);
+            
+            result3 = correctNum1 * correctNum3;
+            result4 = correctNum2 * correctNum4;
+            break;
+            
+        case '÷':
+            // Force whole number results without decimals
+            correctNum2 = getRandomNumber(difficulty) || 1;
+            const quotient1 = Math.max(1, Math.floor(Math.random() * 9) + 1);
+            correctNum1 = quotient1 * correctNum2;
+            
+            correctNum4 = getRandomNumber(difficulty) || 1;
+            const quotient2 = Math.max(1, Math.floor(Math.random() * 9) + 1);
+            correctNum3 = quotient2 * correctNum4;
+            
+            result1 = quotient1;
+            result2 = quotient2;
+            result3 = Math.floor(correctNum1 / correctNum3); // Remove decimals
+            result4 = Math.floor(correctNum2 / correctNum4); // Remove decimals
+            break;
                     
                 case '-':
                     // Ensure non-negative results that match digit count
@@ -266,35 +307,7 @@
                     result4 = Math.abs(correctNum2 - correctNum4);
                     break;
                     
-                case 'X':
-                    // Avoid trivial multiplications (like 0×N=0)
-                    correctNum1 = getRandomNumber(difficulty);
-                    correctNum2 = getRandomNumber(difficulty);
-                    result1 = correctNum1 * correctNum2;
-                    
-                    correctNum3 = getRandomNumber(difficulty);
-                    correctNum4 = getRandomNumber(difficulty);
-                    result2 = correctNum3 * correctNum4;
-                    
-                    result3 = correctNum1 * correctNum3;
-                    result4 = correctNum2 * correctNum4;
-                    break;
-                    
-                case '÷':
-                    // Force whole-number results
-                    correctNum2 = getRandomNumber(difficulty) || 1; // Avoid division by 0
-                    const quotient1 = Math.max(1, Math.floor(Math.random() * 9) + 1);
-                    correctNum1 = quotient1 * correctNum2;
-                    
-                    correctNum4 = getRandomNumber(difficulty) || 1;
-                    const quotient2 = Math.max(1, Math.floor(Math.random() * 9) + 1);
-                    correctNum3 = quotient2 * correctNum4;
-                    
-                    result1 = quotient1;
-                    result2 = quotient2;
-                    result3 = (correctNum1 / correctNum3).toFixed(2);
-                    result4 = (correctNum2 / correctNum4).toFixed(2);
-                    break;
+                
             }
 
             // Display results
