@@ -326,30 +326,29 @@ function generatePuzzle() {
 
             case '-':
                 correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-                if (correctNum1 < correctNum2) [correctNum1, correctNum2] = [correctNum2, correctNum1];
+                correctNum2 = getRandomNumberInRange(lowerBound, correctNum1); // Ensure positive result
                 result1 = correctNum1 - correctNum2;
 
                 correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-                if (correctNum3 < correctNum4) [correctNum3, correctNum4] = [correctNum4, correctNum3];
+                correctNum4 = getRandomNumberInRange(lowerBound, correctNum3); // Ensure positive result
                 result2 = correctNum3 - correctNum4;
                 break;
 
             case 'X':
-                    case '*':
-                        // For multiplication, use smaller numbers to prevent overflow
-                        const multLower = Math.pow(10, Math.max(1, Math.floor(difficulty/2) - 1));
-                        const multUpper = Math.pow(10, Math.ceil(difficulty/2)) - 1;
-                        
-                        correctNum1 = getRandomNumberInRange(multLower, multUpper);
-                        correctNum2 = getRandomNumberInRange(multLower, multUpper);
-                        result1 = correctNum1 * correctNum2;
+            case '*':
+                // For multiplication, use smaller numbers to prevent overflow
+                const multMaxDigits = Math.ceil(difficulty / 2);
+                const multLower = Math.pow(10, multMaxDigits - 1);
+                const multUpper = Math.pow(10, multMaxDigits) - 1;
+                
+                correctNum1 = getRandomNumberInRange(multLower, multUpper);
+                correctNum2 = getRandomNumberInRange(multLower, multUpper);
+                result1 = correctNum1 * correctNum2;
 
-                        correctNum3 = getRandomNumberInRange(multLower, multUpper);
-                        correctNum4 = getRandomNumberInRange(multLower, multUpper);
-                        result2 = correctNum3 * correctNum4;
-                        break;
+                correctNum3 = getRandomNumberInRange(multLower, multUpper);
+                correctNum4 = getRandomNumberInRange(multLower, multUpper);
+                result2 = correctNum3 * correctNum4;
+                break;
 
             case '÷':
             case '/':
@@ -385,8 +384,8 @@ function generatePuzzle() {
                 break;
         }
 
-        // Final validation: Ensure all results are within difficulty digit range
-        const maxVal = Math.pow(10, difficulty) - 1;
+        // Final validation: Ensure all results are within reasonable range
+        const maxVal = Math.pow(10, difficulty * 2); // More generous limit for multiplication
         if (
             result1 <= maxVal && result2 <= maxVal &&
             result3 <= maxVal && result4 <= maxVal
@@ -397,8 +396,8 @@ function generatePuzzle() {
 
     document.getElementById("result1").value = result1;
     document.getElementById("result2").value = result2;
-    document.getElementById("result3").value = result3;
-    document.getElementById("result4").value = result4;
+    document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
+    document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
 }
 
 
