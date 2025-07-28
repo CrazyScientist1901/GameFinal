@@ -204,15 +204,10 @@
         }
 
         function getRandomNumber(digits) {
-            if (digits==1){
-                return Math.floor(Math.random() * 10);                
-            }
-            if (digits==2){
-                return Math.floor(Math.random() * 100);                
-            }
-            if (digits==3){
-                return Math.floor(Math.random() * 1000);
-            }
+    // Returns numbers from 0 up to (10^digits - 1)
+    const max = Math.pow(10, digits) - 1;
+    return Math.floor(Math.random() * (max + 1)); // +1 to include max value
+}
        
     }
 
