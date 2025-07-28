@@ -6,7 +6,6 @@
     <title>Math Game</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="firebase.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -180,6 +179,20 @@
     </div>
 
     <script>
+        // Firebase configuration (should be in firebase.js)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
         let score = 0;
         let round = 1;
@@ -187,6 +200,7 @@
         let currentOperator = ' ';
         let correctNum1, correctNum2, correctNum3, correctNum4;
         let result1, result2, result3, result4;
+        let gameEnded = false;
         
         // Game settings
         let allowedOperations = ['+', '-', 'X', '÷'];
@@ -199,7 +213,7 @@
         const displayDifficulty = document.getElementById('displayDifficulty');
 
         function startGame() {
-            const playerName = document.getElementById("name").value;
+            const playerName = document.getElementById("name").value.trim();
             const playerClass = document.getElementById("class").value;
             const playerSection = document.getElementById("section").value;
 
@@ -220,6 +234,7 @@
             // Reset game state
             score = 0;
             round = 1;
+            gameEnded = false;
             document.getElementById("score").textContent = "Score: " + score;
             document.getElementById("round").textContent = round;
             document.getElementById("answerBox").textContent = "";
@@ -267,20 +282,17 @@
             });
         }
         
-        function getRandomNumber(max) {
-            if (max==1){
-                return Math.floor(Math.random() * 10);                
-            }
-            if (max==2){
-                return Math.floor(Math.random() * 100);                
-            }
-            if (max==3){
-                return Math.floor(Math.random() * 1000);
-            }
+        function getRandomNumber(digits) {
+            const min = Math.pow(10, digits - 1);
+            const max = Math.pow(10, digits) - 1;
+            return Math.floor(Math.random() * (max - min + 1)) + min;
         }
         
         function generatePuzzle() {
+            if (gameEnded) return;
+            
             if (round > maxRounds) {
+                gameEnded = true;
                 savePlayerData();
                 setTimeout(() => {
                     alert("Game Over! Your final score is: " + score);
@@ -306,45 +318,58 @@
             document.getElementById("answerBox").textContent = "";
             document.getElementById("answerBox").className = "";
             
-            // Generate numbers
+            // Generate numbers based on difficulty
             switch (currentOperator) {
                 case '+':
-                    correctNum1 = getRandomNumber();
-                    correctNum2 = getRandomNumber();
+                    correctNum1 = getRandomNumber(difficulty);
+                    correctNum2 = getRandomNumber(difficulty);
                     result1 = correctNum1 + correctNum2;
-                    correctNum3 = getRandomNumber();
-                    correctNum4 = getRandomNumber();
+                    correctNum3 = getRandomNumber(difficulty);
+                    correctNum4 = getRandomNumber(difficulty);
                     result2 = correctNum3 + correctNum4;
                     result3 = correctNum1 + correctNum3;
                     result4 = correctNum2 + correctNum4;
                     break;
                 case '-':
-                    correctNum1 = getRandomNumber();
-                    correctNum2 = getRandomNumber(correctNum1 - 1);
+                    correctNum1 = getRandomNumber(difficulty);
+                    correctNum2 = getRandomNumber(Math.min(difficulty, correctNum1.toString().length));
+                    if (correctNum2 > correctNum1) {
+                        // Swap to ensure positive result
+                        [correctNum1, correctNum2] = [correctNum2, correctNum1];
+                    }
                     result1 = correctNum1 - correctNum2;
-                    correctNum3 = getRandomNumber();
-                    correctNum4 = getRandomNumber(correctNum3 - 1);
+                    correctNum3 = getRandomNumber(difficulty);
+                    correctNum4 = getRandomNumber(Math.min(difficulty, correctNum3.toString().length));
+                    if (correctNum4 > correctNum3) {
+                        [correctNum3, correctNum4] = [correctNum4, correctNum3];
+                    }
                     result2 = correctNum3 - correctNum4;
                     result3 = correctNum1 - correctNum3;
                     result4 = correctNum2 - correctNum4;
                     break;
                 case 'X':
-                    correctNum1 = getRandomNumber();
-                    correctNum2 = getRandomNumber();
+                    correctNum1 = getRandomNumber(Math.ceil(difficulty/2));
+                    correctNum2 = getRandomNumber(Math.ceil(difficulty/2));
                     result1 = correctNum1 * correctNum2;
-                    correctNum3 = getRandomNumber();
-                    correctNum4 = getRandomNumber();
+                    correctNum3 = getRandomNumber(Math.ceil(difficulty/2));
+                    correctNum4 = getRandomNumber(Math.ceil(difficulty/2));
                     result2 = correctNum3 * correctNum4;
                     result3 = correctNum1 * correctNum3;
                     result4 = correctNum2 * correctNum4;
                     break;
                 case '÷':
-                    correctNum2 = getRandomNumber();
-                    result1 = getRandomNumber(5);
-                    correctNum1 = result1 * correctNum2;
-                    correctNum4 = getRandomNumber();
-                    result2 = getRandomNumber(5);
-                    correctNum3 = result2 * correctNum4;
+                    correctNum2 = getRandomNumber(Math.ceil(difficulty/2));
+                    while (correctNum2 === 0) correctNum2 = getRandomNumber(Math.ceil(difficulty/2));
+                    const multiplier1 = getRandomNumber(Math.ceil(difficulty/2));
+                    correctNum1 = correctNum2 * multiplier1;
+                    result1 = multiplier1;
+                    
+                    correctNum4 = getRandomNumber(Math.ceil(difficulty/2));
+                    while (correctNum4 === 0) correctNum4 = getRandomNumber(Math.ceil(difficulty/2));
+                    const multiplier2 = getRandomNumber(Math.ceil(difficulty/2));
+                    correctNum3 = correctNum4 * multiplier2;
+                    result2 = multiplier2;
+                    
                     result3 = correctNum1 / correctNum3;
                     result4 = correctNum2 / correctNum4;
                     break;
@@ -353,8 +378,8 @@
             // Set result values
             document.getElementById("result1").value = result1;
             document.getElementById("result2").value = result2;
-            document.getElementById("result3").value = result3.toFixed(2);
-            document.getElementById("result4").value = result4.toFixed(2);
+            document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
+            document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
         }
            
         function checkResults() {
@@ -427,7 +452,7 @@
                 currentPlayer.score = score;
                 localStorage.setItem("currentPlayer", JSON.stringify(currentPlayer));
                 
-                const playerRef = db.ref('players/' + currentPlayer.name);
+                const playerRef = db.ref('players/' + currentPlayer.name.replace('.', '_'));
                 playerRef.set(currentPlayer)
                     .then(() => console.log('Player data saved to Firebase'))
                     .catch(error => console.error('Error saving data:', error));
@@ -435,7 +460,14 @@
         }
         
         // Initialize the game when page loads
-        window.onload = initGame;
+        window.onload = function() {
+            try {
+                initGame();
+            } catch (error) {
+                console.error("Error initializing game:", error);
+                alert("Error initializing game. Please check your connection and try again.");
+            }
+        };
     </script>
 </body>
 </html>
