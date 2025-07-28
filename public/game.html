@@ -268,9 +268,15 @@
         }
         
         function getRandomNumber(max) {
-            const min = Math.pow(10, difficulty - 1);
-            const adjustedMax = max || (Math.pow(10, difficulty) - 1);
-            return Math.floor(Math.random() * (adjustedMax - min + 1)) + min;
+            if (max==1){
+                return Math.floor(Math.random() * 10);                
+            }
+            if (max==2){
+                return Math.floor(Math.random() * 100);                
+            }
+            if (max==3){
+                return Math.floor(Math.random() * 1000);
+            }
         }
         
         function generatePuzzle() {
