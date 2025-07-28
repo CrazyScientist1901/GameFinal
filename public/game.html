@@ -181,6 +181,16 @@
         function initGame() {
             const settings = JSON.parse(localStorage.getItem('gameSettings'));
             gameCode = localStorage.getItem('currentGame');
+            const minNumber = Math.pow(10, difficulty - 1);
+            const maxNumber = Math.pow(10, difficulty) - 1;
+            document.getElementById('num1').min = minNumber;
+            document.getElementById('num1').max = maxNumber;
+            document.getElementById('num2').min = minNumber;
+            document.getElementById('num2').max = maxNumber;
+            document.getElementById('num3').min = minNumber;
+            document.getElementById('num3').max = maxNumber;
+            document.getElementById('num4').min = minNumber;
+            document.getElementById('num4').max = maxNumber;
             
             if (!settings || !gameCode) {
                 alert("No game settings found. Please join a game first.");
@@ -215,10 +225,11 @@
         }
 
         function getRandomNumberForDifficulty(max) {
-            const min = Math.pow(10, difficulty - 1);
-            const adjustedMax = max || (Math.pow(10, difficulty) - 1);
-            return Math.floor(Math.random() * (adjustedMax - min + 1)) + min;
-        }
+    const min = Math.pow(10, difficulty - 1);
+    const adjustedMax = max || (Math.pow(10, difficulty) - 1);
+    // Ensure we never return numbers with more digits than specified
+    return Math.floor(Math.random() * (adjustedMax - min + 1)) + min;
+}
         
         function generatePuzzle() {
             if (round > maxRounds) {
@@ -304,6 +315,13 @@
             
             if (isNaN(num1) || isNaN(num2) || isNaN(num3) || isNaN(num4)) {
                 answerBox.innerText = "Please fill in all numbers!";
+                answerBox.className = "wrong";
+                return;
+            }
+            // Strict digit count validation
+            const digitCount = (num) => num.toString().length;
+            if (digitCount(num1) !== difficulty || digitCount(num2) !== difficulty || digitCount(num3) !== difficulty || digitCount(num4) !== difficulty) {
+                answerBox.innerText = `All numbers must be exactly ${difficulty} digits!`;
                 answerBox.className = "wrong";
                 return;
             }
