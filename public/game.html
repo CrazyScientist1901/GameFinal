@@ -316,17 +316,22 @@ const upperBound = Math.pow(10, difficulty) - 1;
 
 switch (currentOperator) {
     case '+':
+    do {
         correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
         correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
         result1 = correctNum1 + correctNum2;
+    } while (result1 > upperBound || result1 < lowerBound);
 
+    do {
         correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
         correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
         result2 = correctNum3 + correctNum4;
+    } while (result2 > upperBound || result2 < lowerBound);
 
-        result3 = correctNum1 + correctNum3;
-        result4 = correctNum2 + correctNum4;
-        break;
+    result3 = correctNum1 + correctNum3;
+    result4 = correctNum2 + correctNum4;
+    break;
+
 
     case '-':
         do {
