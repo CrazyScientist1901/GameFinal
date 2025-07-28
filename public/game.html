@@ -216,90 +216,130 @@
             });
         }
 
-        function getRandomNumberForDifficulty(max) {
+          function getRandomNumberForDifficulty(max) {
         const min = Math.pow(10, difficulty - 1);
         const adjustedMax = max || (Math.pow(10, difficulty) - 1);
-        // Additional check to ensure we never exceed digit count
-        let num = Math.floor(Math.random() * (adjustedMax - min + 1)) + min;
-        while (num.toString().length > difficulty) {
+        // Force the number to be exactly the right digit count
+        let num;
+        do {
             num = Math.floor(Math.random() * (adjustedMax - min + 1)) + min;
-        }
+        } while (num.toString().length !== difficulty);
         return num;
     }
+
+    // Modified generatePuzzle to ensure strict digit compliance
+    function generatePuzzle() {
+        if (round > maxRounds) {
+            savePlayerData();
+            setTimeout(() => {
+                alert("Game Over! Your final score is: " + score);
+                window.location.reload();
+            }, 500);
+            return;
+        }
         
-        function generatePuzzle() {
-            if (round > maxRounds) {
-                savePlayerData();
-                setTimeout(() => {
-                    alert("Game Over! Your final score is: " + score);
-                    window.location.reload();
-                }, 500);
+        document.getElementById("round").textContent = round;
+        document.getElementById("generateBtn").disabled = true;
+        document.getElementById("checkBtn").disabled = false;
+        
+        currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
+        document.getElementById("operator").textContent = currentOperator;
+        
+        document.getElementById("num1").value = "";
+        document.getElementById("num2").value = "";
+        document.getElementById("num3").value = "";
+        document.getElementById("num4").value = "";
+        document.getElementById("answerBox").textContent = "";
+        document.getElementById("answerBox").className = "";
+        
+        // Remove min/max restrictions to allow any input
+        document.getElementById('num1').removeAttribute('min');
+        document.getElementById('num1').removeAttribute('max');
+        document.getElementById('num2').removeAttribute('min');
+        document.getElementById('num2').removeAttribute('max');
+        document.getElementById('num3').removeAttribute('min');
+        document.getElementById('num3').removeAttribute('max');
+        document.getElementById('num4').removeAttribute('min');
+        document.getElementById('num4').removeAttribute('max');
+        
+        // Generate numbers strictly following difficulty
+        switch (currentOperator) {
+            case '+':
+                correctNum1 = getRandomNumberForDifficulty();
+                correctNum2 = getRandomNumberForDifficulty();
+                result1 = correctNum1 + correctNum2;
+                correctNum3 = getRandomNumberForDifficulty();
+                correctNum4 = getRandomNumberForDifficulty();
+                result2 = correctNum3 + correctNum4;
+                result3 = correctNum1 + correctNum3;
+                result4 = correctNum2 + correctNum4;
+                break;
+            case '-':
+                correctNum1 = getRandomNumberForDifficulty();
+                correctNum2 = getRandomNumberForDifficulty(correctNum1 - 1);
+                result1 = correctNum1 - correctNum2;
+                correctNum3 = getRandomNumberForDifficulty();
+                correctNum4 = getRandomNumberForDifficulty(correctNum3 - 1);
+                result2 = correctNum3 - correctNum4;
+                result3 = correctNum1 - correctNum3;
+                result4 = correctNum2 - correctNum4;
+                break;
+            case 'X':
+                correctNum1 = getRandomNumberForDifficulty();
+                correctNum2 = getRandomNumberForDifficulty();
+                result1 = correctNum1 * correctNum2;
+                correctNum3 = getRandomNumberForDifficulty();
+                correctNum4 = getRandomNumberForDifficulty();
+                result2 = correctNum3 * correctNum4;
+                result3 = correctNum1 * correctNum3;
+                result4 = correctNum2 * correctNum4;
+                break;
+            case '÷':
+                correctNum2 = getRandomNumberForDifficulty();
+                const quotient1 = Math.max(1, Math.floor(Math.random() * 9) + 1); // 1-9
+                correctNum1 = quotient1 * correctNum2;
+                correctNum4 = getRandomNumberForDifficulty();
+                const quotient2 = Math.max(1, Math.floor(Math.random() * 9) + 1); // 1-9
+                correctNum3 = quotient2 * correctNum4;
+                result1 = quotient1;
+                result2 = quotient2;
+                result3 = correctNum1 / correctNum3;
+                result4 = correctNum2 / correctNum4;
+                break;
+        }
+        
+        document.getElementById("result1").value = result1;
+        document.getElementById("result2").value = result2;
+        document.getElementById("result3").value = result3.toFixed(2);
+        document.getElementById("result4").value = result4.toFixed(2);
+    }
+
+    function checkResults() {
+        const num1 = parseFloat(document.getElementById("num1").value);
+        const num2 = parseFloat(document.getElementById("num2").value);
+        const num3 = parseFloat(document.getElementById("num3").value);
+        const num4 = parseFloat(document.getElementById("num4").value);
+        const answerBox = document.getElementById("answerBox");
+        
+        if (isNaN(num1) || isNaN(num2) || isNaN(num3) || isNaN(num4)) {
+            answerBox.innerText = "Please fill in all numbers!";
+            answerBox.className = "wrong";
+            return;
+        }
+        
+        // Only validate digit count for student answers if needed
+        if (difficulty > 0) {
+            const validateDigitCount = (num) => {
+                return num >= Math.pow(10, difficulty - 1) && 
+                       num <= (Math.pow(10, difficulty) - 1);
+            };
+            
+            if (!validateDigitCount(num1) || !validateDigitCount(num2) || 
+                !validateDigitCount(num3) || !validateDigitCount(num4)) {
+                answerBox.innerText = `All numbers must be ${difficulty}-digit numbers!`;
+                answerBox.className = "wrong";
                 return;
             }
-            
-            document.getElementById("round").textContent = round;
-            document.getElementById("generateBtn").disabled = true;
-            document.getElementById("checkBtn").disabled = false;
-            
-            currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
-            document.getElementById("operator").textContent = currentOperator;
-            
-            document.getElementById("num1").value = "";
-            document.getElementById("num2").value = "";
-            document.getElementById("num3").value = "";
-            document.getElementById("num4").value = "";
-            document.getElementById("answerBox").textContent = "";
-            document.getElementById("answerBox").className = "";
-            
-            switch (currentOperator) {
-                case '+':
-                    correctNum1 = getRandomNumberForDifficulty();
-                    correctNum2 = getRandomNumberForDifficulty();
-                    result1 = correctNum1 + correctNum2;
-                    correctNum3 = getRandomNumberForDifficulty();
-                    correctNum4 = getRandomNumberForDifficulty();
-                    result2 = correctNum3 + correctNum4;
-                    result3 = correctNum1 + correctNum3;
-                    result4 = correctNum2 + correctNum4;
-                    break;
-                case '-':
-                    correctNum1 = getRandomNumberForDifficulty();
-                    correctNum2 = getRandomNumberForDifficulty(correctNum1 - 1);
-                    result1 = correctNum1 - correctNum2;
-                    correctNum3 = getRandomNumberForDifficulty();
-                    correctNum4 = getRandomNumberForDifficulty(correctNum3 - 1);
-                    result2 = correctNum3 - correctNum4;
-                    result3 = correctNum1 - correctNum3;
-                    result4 = correctNum2 - correctNum4;
-                    break;
-                case 'X':
-                    correctNum1 = getRandomNumberForDifficulty();
-                    correctNum2 = getRandomNumberForDifficulty();
-                    result1 = correctNum1 * correctNum2;
-                    correctNum3 = getRandomNumberForDifficulty();
-                    correctNum4 = getRandomNumberForDifficulty();
-                    result2 = correctNum3 * correctNum4;
-                    result3 = correctNum1 * correctNum3;
-                    result4 = correctNum2 * correctNum4;
-                    break;
-                case '÷':
-                    correctNum2 = getRandomNumberForDifficulty();
-                    const quotient1 = getRandomNumberForDifficulty(5);
-                    correctNum1 = quotient1 * correctNum2;
-                    correctNum4 = getRandomNumberForDifficulty();
-                    const quotient2 = getRandomNumberForDifficulty(5);
-                    correctNum3 = quotient2 * correctNum4;
-                    result1 = quotient1;
-                    result2 = quotient2;
-                    result3 = correctNum1 / correctNum3;
-                    result4 = correctNum2 / correctNum4;
-                    break;
-            }
-            
-            document.getElementById("result1").value = result1;
-            document.getElementById("result2").value = result2;
-            document.getElementById("result3").value = result3.toFixed(2);
-            document.getElementById("result4").value = result4.toFixed(2);
         }
            
         function checkResults() {
