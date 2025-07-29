@@ -87,40 +87,14 @@
 
         // Join game function
         function joinGame() {
-            const gameCode = document.getElementById('gameCode').value.trim();
-            const errorEl = document.getElementById('error');
-            
-            if (!gameCode || gameCode.length !== 4 || !/^\d{4}$/.test(gameCode)) {
-                errorEl.textContent = "Please enter a valid 4-digit code";
-                return;
-            }
-
-            waitForFirebase(() => {
-                db.ref('games/' + gameCode).once('value')
-                    .then(snapshot => {
-                        const game = snapshot.val();
-                        console.log("Game data:", game);  // Debug
-                        
-                        if (!game || !game.isActive) {
-                            errorEl.textContent = "Game not found or has ended";
-                        } else {
-                            localStorage.setItem('currentGame', gameCode);
-                            localStorage.setItem('gameSettings', JSON.stringify({
-                                operations: game.operations,
-                                difficulty: game.difficulty
-                            }));
-                            window.location.href = "game.html";  // Redirect
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Firebase error:", error);
-                        errorEl.textContent = "Failed to connect. Check your internet.";
-                    });
-            });
-        }
-
-        // Attach event listener
-        document.getElementById('joinButton').addEventListener('click', joinGame);
+    // Hardcoded test (temporarily remove Firebase checks)
+    localStorage.setItem('currentGame', '1234');
+    localStorage.setItem('gameSettings', JSON.stringify({
+        operations: ['+', '-'],
+        difficulty: '2'
+    }));
+    window.location.href = "game.html";  // Test redirect
+}
     </script>
 </body>
 </html>
