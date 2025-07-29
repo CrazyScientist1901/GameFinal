@@ -4,9 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Math Game</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="firebase.js"></script>
+    <!-- Load Firebase first -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="firebase.js"></script> <!-- This defines `db` -->
+<script>
+    // Now you can safely use `db`
+    db.ref('games/' + gameCode).on('value', (snapshot) => { ... });
+</script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -246,9 +251,12 @@
         
         if (!settings || !gameCode) {
             alert("No game settings found. Please join a game first.");
-            window.location.href = "student-join.html"; // Redirect to join page
+            window.location.href = "join.html"; // Redirect to join page
             return;
         }
+        
+        // Rest of the code...
+    } 
             
             allowedOperations = settings.operations;
             difficulty = parseInt(settings.difficulty);
@@ -273,11 +281,12 @@
                     window.location.href = "student-join.html";
                 }
             });
-        } catch (error) {
+      catch (error) {
         console.error("Initialization error:", error);
-        alert("Error initializing game. Please try again.");
+        alert("Error loading game. Please try again.");
+        window.location.href = "join.html";
     }
-        }
+}
         
         function getRandomNumberInRange(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
