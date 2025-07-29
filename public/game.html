@@ -362,15 +362,15 @@ function generatePuzzle() {
                 break;
 
             case '/':
+    // Ensure we get whole number results
     correctNum2 = getRandomNumberInRange(1, upperBound);
-    result1 = getRandomNumberInRange(lowerBound, upperBound);
+    result1 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum2));
     correctNum1 = result1 * correctNum2;
 
     correctNum4 = getRandomNumberInRange(1, upperBound);
-    result2 = getRandomNumberInRange(lowerBound, upperBound);
+    result2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum4));
     correctNum3 = result2 * correctNum4;
     break;
-        }
 
         // Common Result Calculations
         switch (currentOperator) {
@@ -393,17 +393,22 @@ function generatePuzzle() {
         }
 
         // Check if all results are within bounds and valid
-        if (
-            result1 <= resultBound && 
-            result2 <= resultBound &&
-            result3 <= resultBound && 
-            result4 <= resultBound &&
-            !isNaN(result1) && !isNaN(result2) && 
-            !isNaN(result3) && !isNaN(result4) &&
-            (currentOperator !== '/' || (Number.isInteger(result3) && Number.isInteger(result4)))
-        ) {
-            valid = true;
-        }
+        // Check if all results are within bounds and valid
+if (
+    result1 <= resultBound && 
+    result2 <= resultBound &&
+    result3 <= resultBound && 
+    result4 <= resultBound &&
+    !isNaN(result1) && !isNaN(result2) && 
+    !isNaN(result3) && !isNaN(result4) &&
+    (currentOperator !== '/' || 
+     (Number.isInteger(result3) && 
+      Number.isInteger(result4) &&
+      correctNum2 !== 0 && 
+      correctNum4 !== 0))
+) {
+    valid = true;
+}
     }
 
     if (!valid) {
@@ -427,14 +432,29 @@ function generatePuzzle() {
             result3 = correctNum1 + correctNum3;
             result4 = correctNum2 + correctNum4;
 
+            if (!valid && currentOperator === '/') {
+        currentOperator = '+';
+        document.getElementById("operator").textContent = '+';
+        // Reset and generate addition problem
+        generatePuzzle();
+        return;  // Exit and let the new call handle it
+    }
+
             if (
-                result1 <= resultBound && 
-                result2 <= resultBound &&
-                result3 <= resultBound && 
-                result4 <= resultBound
-            ) {
-                valid = true;
-            }
+    result1 <= resultBound && 
+    result2 <= resultBound &&
+    result3 <= resultBound && 
+    result4 <= resultBound &&
+    !isNaN(result1) && !isNaN(result2) && 
+    !isNaN(result3) && !isNaN(result4) &&
+    (currentOperator !== '/' || 
+     (Number.isInteger(result3) && 
+      Number.isInteger(result4) &&
+      correctNum2 !== 0 && 
+      correctNum4 !== 0))
+) {
+    valid = true;
+}
         }
     }
 
