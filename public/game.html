@@ -4,199 +4,483 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Math Game</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="firebase.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
         }
-        input {
-            width: 50px;
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background-color: #ffffff;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
             text-align: center;
+            overflow-y: auto;
+            height: 90vh;
+        }
+        h1 {
+            color: #4A90E2;
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        input[type="number"], input[type="text"], select {
+            width: 90%;
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input[type="number"]:focus, input[type="text"]:focus, select:focus {
+            border-color: #4A90E2;
+            outline: none;
         }
         button {
-            margin: 5px;
+            background-color: #4A90E2;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+            width: 90%;
+            transition: background-color 0.3s;
         }
-    </style>
+        button:hover {
+            background-color: #357ABD;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .parent {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+        .operator {
+            font-size: 24px;
+            align-self: center;
+            color: #333;
+        }
+        #score,
+        #round {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        #answerBox {
+            color: green;
+            margin-top: 10px;
+            font-weight: bold;
+            min-height: 60px;
+        }
+        .correct {
+            color: green;
+        }
+        .wrong {
+            color: red;
+        }
+        .game-info {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f0f8ff;
+            border-radius: 5px;
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            input[type="number"] {
+                font-size: 14px;
+            }
+            button {
+                font-size: 14px;
+                padding: 8px;
+            }
+            .parent {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>    
 </head>
 <body>
-    <h1>Math Puzzle Game</h1>
-
-    <label for="difficulty">Select Difficulty (1-3 digits): </label>
-    <select id="difficulty">
-        <option value="1">1-digit</option>
-        <option value="2">2-digit</option>
-        <option value="3">3-digit</option>
-    </select>
-    <br><br>
-
-    <button onclick="startGame()">Start Game</button>
-    <button id="generateBtn" onclick="generatePuzzleHandler()" disabled>Generate Puzzle</button>
-    <button id="checkBtn" onclick="checkAnswer()" disabled>Check Answer</button>
-
-    <h3>Operator: <span id="operator">?</span></h3>
-
-    <div>
-        <input type="text" id="num1" disabled> 
-        <span id="operatorDisplay1">?</span>
-        <input type="text" id="num2" disabled> = 
-        <input type="text" id="result1" disabled>
+    <div class="container">
+        <h1>Math Game</h1>
+        <p>Enter your details to start the game</p>
+        <input type="text" id="name" placeholder="Name">
+        <label for="class">Select Class </label>
+        <select name="class" id="class">
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+        </select>
+        <label for="section">Select Section </label>
+        <select name="section" id="section">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+            <option value="F">F</option>
+        </select>
+        <button onclick="startGame()">Start Game</button>
+        <div class="game-info">
+            <p>Game Code: <strong id="displayGameCode">Loading...</strong></p>
+            <p>Allowed Operations: <span id="displayOperations">Loading...</span></p>
+            <p>Difficulty: <span id="displayDifficulty">Loading...</span>-digit numbers</p>
+        </div>
+        
+        <div id="game" style="display: none;">
+            <p>Round: <span id="round">1</span> / 10</p>
+            <div class="parent">
+                <input type="number" id="num1" placeholder="Number 1" min="0">
+                <input type="number" id="num2" placeholder="Number 2" min="0">
+                <input type="number" id="result1" placeholder="Result 1" readonly>
+            </div>
+            <div class="parent">
+                <input type="number" id="num3" placeholder="Number 3" min="0">
+                <input type="number" id="num4" placeholder="Number 4" min="0">
+                <input type="number" id="result2" placeholder="Result 2" readonly>
+            </div>
+            <div class="parent">
+                <input type="number" id="result3" placeholder="Result 3" readonly>
+                <input type="number" id="result4" placeholder="Result 4" readonly>
+                <span id="operator" class="operator">-</span>
+            </div>
+            <button id="generateBtn" onclick="generatePuzzle()" disabled>Generate Puzzle</button>
+            <button id="checkBtn" onclick="checkResults()" disabled>Check</button>
+            
+            <div id="answerBox"></div>
+            <p id="score">Score: 0</p>
+        </div>
     </div>
-
-    <div>
-        <input type="text" id="num3" disabled> 
-        <span id="operatorDisplay2">?</span>
-        <input type="text" id="num4" disabled> = 
-        <input type="text" id="result2" disabled>
-    </div>
-
-    <div>
-        <input type="text" id="result3" disabled> = 
-        <input type="text" id="answer1">
-    </div>
-
-    <div>
-        <input type="text" id="result4" disabled> = 
-        <input type="text" id="answer2">
-    </div>
-
-    <p id="feedback"></p>
 
     <script>
-        let currentOperator;
-        let result1, result2, result3, result4;
+        // Firebase configuration (should be in firebase.js)
+        
+        
+
+
+        let score = 0;
+        let round = 1;
+        const maxRounds = 10;
+        let currentOperator = ' ';
         let correctNum1, correctNum2, correctNum3, correctNum4;
-        const allowedOperations = ['+', '-', '*', '/'];
+        let result1, result2, result3, result4;
+        let gameEnded = false;
+        
+        // Game settings
+        let allowedOperations = ['+', '-', 'X', '÷'];
+        let difficulty = 2;
+        let gameCode = '';
+        
+        // DOM elements
+        const displayGameCode = document.getElementById('displayGameCode');
+        const displayOperations = document.getElementById('displayOperations');
+        const displayDifficulty = document.getElementById('displayDifficulty');
 
-        function getRandomInt(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
+        function startGame() {
+            const playerName = document.getElementById("name").value.trim();
+            const playerClass = document.getElementById("class").value;
+            const playerSection = document.getElementById("section").value;
 
-        function getFactorPairsInRange(minResult, maxResult) {
-            let pairs = [];
-            for (let i = 1; i <= Math.sqrt(maxResult); i++) {
-                for (let j = i; j <= maxResult; j++) {
-                    let product = i * j;
-                    if (product >= minResult && product <= maxResult) {
-                        pairs.push([i, j]);
-                    }
-                }
-            }
-            return pairs;
-        }
-
-        function getDivisiblePairsInRange(minResult, maxResult) {
-            let pairs = [];
-            for (let divisor = 1; divisor <= maxResult; divisor++) {
-                for (let result = minResult; result <= maxResult; result++) {
-                    let dividend = divisor * result;
-                    pairs.push([dividend, divisor]);
-                }
-            }
-            return pairs;
-        }
-
-        function generatePuzzle(difficulty, operator) {
-            let minResult = Math.pow(10, difficulty - 1);
-            let maxResult = Math.pow(10, difficulty) - 1;
-            let num1, num2, result;
-
-            switch (operator) {
-                case '+':
-                    result = getRandomInt(minResult, maxResult);
-                    num1 = getRandomInt(1, result - 1);
-                    num2 = result - num1;
-                    break;
-                case '-':
-                    result = getRandomInt(minResult, maxResult);
-                    num2 = getRandomInt(1, 100);
-                    num1 = result + num2;
-                    break;
-                case '*':
-                    let factors = getFactorPairsInRange(minResult, maxResult);
-                    if (factors.length === 0) return null;
-                    [num1, num2] = factors[Math.floor(Math.random() * factors.length)];
-                    result = num1 * num2;
-                    break;
-                case '/':
-                    let dividends = getDivisiblePairsInRange(minResult, maxResult);
-                    if (dividends.length === 0) return null;
-                    [num1, num2] = dividends[Math.floor(Math.random() * dividends.length)];
-                    result = num1 / num2;
-                    break;
-            }
-
-            return { num1, num2, operator, result };
-        }
-
-        function generatePuzzleHandler() {
-            const difficulty = parseInt(document.getElementById("difficulty").value);
-            const operator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
-            currentOperator = operator;
-
-            const puzzle1 = generatePuzzle(difficulty, operator);
-            const puzzle2 = generatePuzzle(difficulty, operator);
-
-            if (!puzzle1 || !puzzle2) {
-                alert("Unable to generate puzzle. Try a different difficulty.");
+            if (!playerName || !playerClass || !playerSection) {
+                alert("Please enter all details to start the game");
                 return;
             }
 
-            correctNum1 = puzzle1.num1;
-            correctNum2 = puzzle1.num2;
-            correctNum3 = puzzle2.num1;
-            correctNum4 = puzzle2.num2;
+            localStorage.setItem("currentPlayer", JSON.stringify({
+                name: playerName,
+                class: playerClass,
+                section: playerSection,
+                score: 0
+            }));
 
-            result1 = puzzle1.result;
-            result2 = puzzle2.result;
-
-            document.getElementById("num1").value = puzzle1.num1;
-            document.getElementById("num2").value = puzzle1.num2;
-            document.getElementById("result1").value = puzzle1.result;
-
-            document.getElementById("num3").value = puzzle2.num1;
-            document.getElementById("num4").value = puzzle2.num2;
-            document.getElementById("result2").value = puzzle2.result;
-
-            result3 = puzzle1.num1 + puzzle2.num1;
-            result4 = puzzle1.num2 + puzzle2.num2;
-
-            document.getElementById("result3").value = result3;
-            document.getElementById("result4").value = result4;
-
-            document.getElementById("operator").textContent = operator;
-            document.getElementById("operatorDisplay1").textContent = operator;
-            document.getElementById("operatorDisplay2").textContent = operator;
-
-            document.getElementById("checkBtn").disabled = false;
-            document.getElementById("generateBtn").disabled = true;
+            document.getElementById("game").style.display = "block";
+            
+            // Reset game state
+            score = 0;
+            round = 1;
+            gameEnded = false;
+            document.getElementById("score").textContent = "Score: " + score;
+            document.getElementById("round").textContent = round;
+            document.getElementById("answerBox").textContent = "";
+            
+            // Enable generate button
+            document.getElementById("generateBtn").disabled = false;
+            document.getElementById("checkBtn").disabled = true;
+            document.querySelector("button[onclick='startGame()']").disabled = true;
+            
+            // Generate first puzzle
+            generatePuzzle();
         }
-
-        function checkAnswer() {
-            const ans1 = parseInt(document.getElementById("answer1").value);
-            const ans2 = parseInt(document.getElementById("answer2").value);
-
-            const isCorrect = ans1 === result3 && ans2 === result4;
-            const feedback = document.getElementById("feedback");
-
-            if (isCorrect) {
-                feedback.textContent = "🎉 Correct!";
-                feedback.style.color = "green";
-            } else {
-                feedback.textContent = "❌ Incorrect. Try again!";
-                feedback.style.color = "red";
+        
+        function initGame() {
+            const settings = JSON.parse(localStorage.getItem('gameSettings'));
+            gameCode = localStorage.getItem('currentGame');
+            
+            if (!settings || !gameCode) {
+                alert("No game settings found. Please join a game first.");
+                return;
             }
+            
+            allowedOperations = settings.operations;
+            difficulty = parseInt(settings.difficulty);
+            
+            // Update UI with game info
+            displayGameCode.textContent = gameCode;
+            displayOperations.textContent = allowedOperations.join(', ');
+            displayDifficulty.textContent = difficulty;
+            
+            // Set max number based on difficulty
+            const maxNumber = Math.pow(10, difficulty) - 1;
+            document.getElementById('num1').max = maxNumber;
+            document.getElementById('num2').max = maxNumber;
+            document.getElementById('num3').max = maxNumber;
+            document.getElementById('num4').max = maxNumber;
+            
+            // Monitor game status
+            db.ref('games/' + gameCode).on('value', (snapshot) => {
+                const game = snapshot.val();
+                if (!game || !game.isActive) {
+                    alert("The teacher has ended this game session.");
+                    window.location.href = "student-join.html";
+                }
+            });
+        }
+        
+        function getRandomNumberInRange(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-            document.getElementById("generateBtn").disabled = false;
-            document.getElementById("checkBtn").disabled = true;
+
+                    
+            // Generate numbers based on difficulty
+function generatePuzzle() {
+    if (gameEnded) return;
+
+    if (round > maxRounds) {
+        gameEnded = true;
+        savePlayerData();
+        setTimeout(() => {
+            alert("Game Over! Your final score is: " + score);
+            document.getElementById("game").style.display = "none";
+            document.querySelector("button[onclick='startGame()']").disabled = false;
+        }, 500);
+        return;
+    }
+
+    document.getElementById("round").textContent = round;
+    document.getElementById("generateBtn").disabled = true;
+    document.getElementById("checkBtn").disabled = false;
+
+    currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
+    if (currentOperator === 'X') currentOperator = '*';
+    document.getElementById("operator").textContent = currentOperator === '*' ? 'X' : currentOperator;
+
+    // Clear previous inputs
+    ['num1', 'num2', 'num3', 'num4'].forEach(id => document.getElementById(id).value = '');
+    ['result1', 'result2', 'result3', 'result4'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById("answerBox").textContent = '';
+    document.getElementById("answerBox").className = '';
+
+    const lowerBound = Math.pow(10, difficulty - 1);
+    const upperBound = Math.pow(10, difficulty) - 1;
+    const resultBound = upperBound;
+    const multiplicationSafeUpper = Math.floor(Math.sqrt(resultBound));
+
+    let valid = false;
+
+    while (!valid) {
+        switch (currentOperator) {
+            case '+':
+                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
+                result1 = correctNum1 + correctNum2;
+
+                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
+                result2 = correctNum3 + correctNum4;
+                break;
+
+            case '-':
+                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum2 = getRandomNumberInRange(lowerBound, correctNum1);
+                result1 = correctNum1 - correctNum2;
+
+                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum4 = getRandomNumberInRange(lowerBound, correctNum3);
+                result2 = correctNum3 - correctNum4;
+                break;
+
+            case '*':
+                correctNum1 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                correctNum2 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                result1 = correctNum1 * correctNum2;
+
+                correctNum3 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                correctNum4 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                result2 = correctNum3 * correctNum4;
+                break;
+
+            case '/':
+                correctNum2 = getRandomNumberInRange(1, upperBound);
+                result1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum1 = result1 * correctNum2;
+
+                correctNum4 = getRandomNumberInRange(1, upperBound);
+                result2 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum3 = result2 * correctNum4;
+                break;
         }
 
-        function startGame() {
-            document.getElementById("generateBtn").disabled = false;
-            document.getElementById("checkBtn").disabled = true;
-            document.getElementById("feedback").textContent = "";
-            document.getElementById("answer1").value = "";
-            document.getElementById("answer2").value = "";
+        // Common Result Calculations
+        switch (currentOperator) {
+            case '+':
+                result3 = correctNum1 + correctNum3;
+                result4 = correctNum2 + correctNum4;
+                break;
+            case '-':
+                result3 = correctNum1 - correctNum3;
+                result4 = correctNum2 - correctNum4;
+                break;
+            case '*':
+                result3 = correctNum1 * correctNum3;
+                result4 = correctNum2 * correctNum4;
+                break;
+            case '/':
+                result3 = correctNum3 !== 0 ? correctNum1 / correctNum3 : 0;
+                result4 = correctNum4 !== 0 ? correctNum2 / correctNum4 : 0;
+                break;
         }
+
+        if (
+            result1 <= resultBound && result2 <= resultBound &&
+            result3 <= resultBound && result4 <= resultBound
+        ) {
+            valid = true;
+        }
+    }
+
+    document.getElementById("result1").value = result1;
+    document.getElementById("result2").value = result2;
+    document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
+    document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
+}
+
+
+              
+           
+        function checkResults() {
+            const num1 = parseFloat(document.getElementById("num1").value);
+            const num2 = parseFloat(document.getElementById("num2").value);
+            const num3 = parseFloat(document.getElementById("num3").value);
+            const num4 = parseFloat(document.getElementById("num4").value);
+            const answerBox = document.getElementById("answerBox");
+            
+            if (isNaN(num1) || isNaN(num2) || isNaN(num3) || isNaN(num4)) {
+                answerBox.innerText = "Please fill in all numbers!";
+                answerBox.className = "wrong";
+                return;
+            }
+            
+            let allCorrect = true;
+            switch(currentOperator) {
+                case '+':
+                    allCorrect = (num1 + num2 === result1) && 
+                                 (num3 + num4 === result2) &&
+                                 (num1 + num3 === result3) &&
+                                 (num2 + num4 === result4);
+                    break;
+                case '-':
+                    allCorrect = (num1 - num2 === result1) && 
+                                 (num3 - num4 === result2) &&
+                                 (num1 - num3 === result3) &&
+                                 (num2 - num4 === result4);
+                    break;
+                case 'X':
+                    allCorrect = (num1 * num2 === result1) && 
+                                 (num3 * num4 === result2) &&
+                                 (num1 * num3 === result3) &&
+                                 (num2 * num4 === result4);
+                    break;
+                case '÷':
+                    if (num2 === 0 || num4 === 0 || num3 === 0) {
+                        allCorrect = false;
+                        break;
+                    }
+                    allCorrect = (Math.abs(num1 / num2 - result1) < 0.0001) && 
+                                 (Math.abs(num3 / num4 - result2) < 0.0001) &&
+                                 (Math.abs(num1 / num3 - result3) < 0.0001) &&
+                                 (Math.abs(num2 / num4 - result4) < 0.0001);
+                    break;
+            }
+            
+            if (allCorrect) {
+                score++;
+                document.getElementById("score").textContent = "Score: " + score;
+                answerBox.innerText = "Correct!";
+                answerBox.className = "correct";
+            } else {
+                answerBox.innerHTML = `Incorrect!<br>Correct answers:<br>
+                    num1 = ${correctNum1}<br>
+                    num2 = ${correctNum2}<br>
+                    num3 = ${correctNum3}<br>
+                    num4 = ${correctNum4}`;
+                answerBox.className = "wrong";
+            }
+            
+            round++;
+            document.getElementById("checkBtn").disabled = true;
+            document.getElementById("generateBtn").disabled = false;
+        }
+
+        function savePlayerData() {
+            const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+            if (currentPlayer) {
+                currentPlayer.score = score;
+                localStorage.setItem("currentPlayer", JSON.stringify(currentPlayer));
+                
+                const playerRef = db.ref('players/' + currentPlayer.name.replace('.', '_'));
+                playerRef.set(currentPlayer)
+                    .then(() => console.log('Player data saved to Firebase'))
+                    .catch(error => console.error('Error saving data:', error));
+            }
+        }
+        
+        // Initialize the game when page loads
+        window.onload = function() {
+            try {
+                initGame();
+            } catch (error) {
+                console.error("Error initializing game:", error);
+                alert("Error initializing game. Please check your connection and try again.");
+            }
+        };
     </script>
 </body>
 </html>
