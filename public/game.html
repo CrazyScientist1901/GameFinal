@@ -493,13 +493,15 @@ function checkResults() {
         if (isAlternativeSolution) {
             score++;
             document.getElementById("score").textContent = "Score: " + score;
-            answerBox.innerText = "Correct! (Alternative solution)";
+            answerBox.innerText = "Correct!";
             answerBox.className = "correct";
         } else {
             answerBox.innerHTML = `Incorrect!<br>Your numbers don't produce all the required results.<br>
                 One possible solution:<br>
                 ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum2} = ${result1}<br>
-                ${correctNum3} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result2}`;
+                ${correctNum3} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result2}<br>;
+                ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum3} = ${result3}<br>
+                ${correctNum2} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result4}`;
             answerBox.className = "wrong";
         }
     }
