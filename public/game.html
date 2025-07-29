@@ -359,30 +359,35 @@ function generatePuzzle() {
                 break;
 
             case '/':
-    // Ensure clean division results with whole numbers
+    // Generate denominators first (can't be zero)
     correctNum2 = getRandomNumberInRange(1, upperBound);
-    result1 = getRandomNumberInRange(lowerBound, Math.floor(upperBound/correctNum2));
-    correctNum1 = result1 * correctNum2;
-
     correctNum4 = getRandomNumberInRange(1, upperBound);
-    result2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound/correctNum4));
-    correctNum3 = result2 * correctNum4;
-
-    // Ensure cross operations also produce whole numbers
-    const commonDivisor = findCommonDivisor(correctNum1, correctNum3);
-    const commonDivisor2 = findCommonDivisor(correctNum2, correctNum4);
     
-    if (commonDivisor > 1 && commonDivisor2 > 1) {
-        correctNum1 /= commonDivisor;
-        correctNum3 /= commonDivisor;
-        correctNum2 /= commonDivisor2;
-        correctNum4 /= commonDivisor2;
-    }
-
+    // Generate whole number results
+    result1 = getRandomNumberInRange(lowerBound, Math.floor(upperBound/correctNum2));
+    result2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound/correctNum4));
+    
+    // Calculate numerators
+    correctNum1 = result1 * correctNum2;
+    correctNum3 = result2 * correctNum4;
+    
+    // Ensure cross operations produce whole numbers
+    // Find greatest common divisor for the pairs
+    const gcd1 = gcd(correctNum1, correctNum3);
+    const gcd2 = gcd(correctNum2, correctNum4);
+    
+    // Simplify the numbers while keeping them as whole numbers
+    correctNum1 /= gcd1;
+    correctNum3 /= gcd1;
+    correctNum2 /= gcd2;
+    correctNum4 /= gcd2;
+    
+    // Recalculate results after simplification
+    result1 = correctNum1 / correctNum2;
+    result2 = correctNum3 / correctNum4;
     result3 = correctNum1 / correctNum3;
     result4 = correctNum2 / correctNum4;
     break;
-        }
 
         // Common Result Calculations
         switch (currentOperator) {
@@ -455,17 +460,16 @@ function generatePuzzle() {
     document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
     document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
 }
-        function findCommonDivisor(a, b) {
+function gcd(a, b) {
     a = Math.abs(a);
     b = Math.abs(b);
-    while(b) {
+    while (b) {
         const temp = b;
         b = a % b;
         a = temp;
     }
     return a;
 }
-
               
            
 function checkResults() {
@@ -515,7 +519,6 @@ function checkResults() {
     userResult3 = num1 / num3;
     userResult4 = num2 / num4;
     break;
-    }
     
     // Compare calculated results with expected results
     const resultsMatch = operationsValid && (
