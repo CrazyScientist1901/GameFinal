@@ -12,18 +12,48 @@
     <script src="firebase.js"></script>
 
     <style>
-        body { font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; }
-        input { padding: 10px; width: 100%; margin-bottom: 10px; }
-        button { 
-            padding: 10px 15px; 
-            background: #4CAF50;
-            color: white; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; }
+    body { 
+        font-family: Arial, sans-serif; 
+        max-width: 500px; 
+        margin: 20px auto;  /* Added vertical margin */
+        padding: 20px;
+        box-sizing: border-box; /* Include padding in width */
+    }
+    
+    input { 
+        padding: 10px; 
+        width: calc(100% - 22px); /* Account for padding and border */
+        margin-bottom: 10px; 
+        border: 1px solid #ddd; /* Added border */
+        box-sizing: border-box;
+    }
+    
+    button { 
+        padding: 10px 15px; 
+        background: #4CAF50;
+        color: white; 
+        border: none; 
+        border-radius: 4px; 
+        cursor: pointer;
+        width: 100%; /* Make button full width */
+        font-size: 16px; /* Consistent text size */
+    }
+    
+    button:hover {
+        background: #45a049; /* Hover effect */
+    }
 
-        #error { color: red; }
-    </style>
+    #error { 
+        color: red; 
+        margin-top: 10px;
+        min-height: 20px; /* Prevent layout shift */
+    }
+    
+    h1 {
+        color: #333;
+        text-align: center; /* Center the heading */
+    }
+</style>
 </head>
 <body>
     <h1>Join Math Game</h1>    
