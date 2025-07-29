@@ -484,13 +484,12 @@ function checkResults() {
         answerBox.innerText = "Correct!";
         answerBox.className = "correct";
     } else {
-        answerBox.innerHTML = `Incorrect!<br>The equations should produce:<br>
-            First operation: ${result1}<br>
-            Second operation: ${result2}<br>
-            Third operation: ${result3}<br>
-            Fourth operation: ${result4}<br><br>
-            Your numbers didn't produce these results.`;
-        answerBox.className = "wrong";
+                answerBox.innerHTML = `Incorrect!<br>Correct answers:<br>
+                    num1 = ${correctNum1}<br>
+                    num2 = ${correctNum2}<br>
+                    num3 = ${correctNum3}<br>
+                    num4 = ${correctNum4}`;
+                answerBox.className = "wrong";
     }
     
     round++;
