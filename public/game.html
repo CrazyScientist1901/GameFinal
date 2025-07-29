@@ -310,11 +310,10 @@ function generatePuzzle() {
 
     const lowerBound = Math.pow(10, difficulty - 1);
     const upperBound = Math.pow(10, difficulty) - 1;
-    const resultBound = upperBound;
 
     let valid = false;
     let attempts = 0;
-    const maxAttempts = 100; // Safety net to prevent infinite loops
+    const maxAttempts = 100; // Prevent infinite loops
 
     while (!valid && attempts < maxAttempts) {
         attempts++;
@@ -341,18 +340,14 @@ function generatePuzzle() {
                 break;
 
             case '*':
-                // Your original multiplication logic - just add bounds checking
-                do {
-                    correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-                    correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-                    result1 = correctNum1 * correctNum2;
-                } while (result1 > resultBound || result1 < lowerBound);
+                // Generate numbers that when multiplied stay within bounds
+                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum1));
+                result1 = correctNum1 * correctNum2;
 
-                do {
-                    correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-                    correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-                    result2 = correctNum3 * correctNum4;
-                } while (result2 > resultBound || result2 < lowerBound);
+                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum4 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum3));
+                result2 = correctNum3 * correctNum4;
                 break;
 
             case '/':
@@ -390,13 +385,13 @@ function generatePuzzle() {
         valid = true;
         const results = [result1, result2, result3, result4];
         for (const result of results) {
-            if (result > resultBound || result < lowerBound) {
+            if (result > upperBound || result < lowerBound) {
                 valid = false;
                 break;
             }
         }
         
-        // Additional check for division to avoid very small numbers
+        // Additional check for division
         if (currentOperator === '/' && 
             (Math.abs(result3) < 0.01 || Math.abs(result4) < 0.01)) {
             valid = false;
@@ -415,7 +410,7 @@ function generatePuzzle() {
     document.getElementById("result2").value = Number.isInteger(result2) ? result2 : result2.toFixed(2);
     document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
     document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
-}           
+}
         function checkResults() {
             const num1 = parseFloat(document.getElementById("num1").value);
             const num2 = parseFloat(document.getElementById("num2").value);
