@@ -314,7 +314,7 @@ function generatePuzzle() {
 
     let valid = false;
     let attempts = 0;
-    const maxAttempts = 50;
+    const maxAttempts = 100; // Safety net to prevent infinite loops
 
     while (!valid && attempts < maxAttempts) {
         attempts++;
@@ -341,15 +341,18 @@ function generatePuzzle() {
                 break;
 
             case '*':
-                // For multiplication, ensure both numbers are small enough that their product stays within bounds
-                const maxFactor = Math.floor(Math.sqrt(upperBound));
-                correctNum1 = getRandomNumberInRange(lowerBound, maxFactor);
-                correctNum2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum1));
-                result1 = correctNum1 * correctNum2;
+                // Your original multiplication logic - just add bounds checking
+                do {
+                    correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+                    correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
+                    result1 = correctNum1 * correctNum2;
+                } while (result1 > resultBound || result1 < lowerBound);
 
-                correctNum3 = getRandomNumberInRange(lowerBound, maxFactor);
-                correctNum4 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum3));
-                result2 = correctNum3 * correctNum4;
+                do {
+                    correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+                    correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
+                    result2 = correctNum3 * correctNum4;
+                } while (result2 > resultBound || result2 < lowerBound);
                 break;
 
             case '/':
@@ -383,32 +386,26 @@ function generatePuzzle() {
                 break;
         }
 
-        // Validate all results
+        // Validate all results stay within bounds
         valid = true;
-        
-        // Check if all results are within the digit limit
         const results = [result1, result2, result3, result4];
         for (const result of results) {
-            if (result > upperBound || result < lowerBound) {
+            if (result > resultBound || result < lowerBound) {
                 valid = false;
                 break;
             }
         }
         
-        // Additional checks for division
-        if (currentOperator === '/') {
-            if (correctNum3 === 0 || correctNum4 === 0) {
-                valid = false;
-            }
-            if (!Number.isInteger(result1) || !Number.isInteger(result2)) {
-                valid = false;
-            }
+        // Additional check for division to avoid very small numbers
+        if (currentOperator === '/' && 
+            (Math.abs(result3) < 0.01 || Math.abs(result4) < 0.01)) {
+            valid = false;
         }
     }
 
     if (!valid) {
-        // If we couldn't generate valid numbers after many attempts, try a different operator
-        currentOperator = allowedOperations.find(op => op !== currentOperator) || '+';
+        // Fallback to addition if we couldn't generate valid numbers
+        currentOperator = '+';
         generatePuzzle();
         return;
     }
@@ -418,8 +415,7 @@ function generatePuzzle() {
     document.getElementById("result2").value = Number.isInteger(result2) ? result2 : result2.toFixed(2);
     document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
     document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
-}                  
-           
+}           
         function checkResults() {
             const num1 = parseFloat(document.getElementById("num1").value);
             const num2 = parseFloat(document.getElementById("num2").value);
