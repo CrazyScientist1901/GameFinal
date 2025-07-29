@@ -302,24 +302,14 @@ function generatePuzzle() {
 
 
     if (round > maxRounds) {
-
-        gameEnded = true;
-
-        savePlayerData();
-
-        setTimeout(() => {
-
-            alert("Game Over! Your final score is: " + score);
-
-            document.getElementById("game").style.display = "none";
-
-            document.querySelector("button[onclick='startGame()']").disabled = false;
-
-        }, 500);
-
-        return;
-
-    }
+    gameEnded = true;
+    savePlayerData();
+    setTimeout(() => {
+        alert("Game Over! Your final score is: " + score);
+        window.location.href = "join.html"; // Redirect to join page
+    }, 500);
+    return;
+}
 
 
 
