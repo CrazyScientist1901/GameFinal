@@ -341,14 +341,19 @@ function generatePuzzle() {
                 break;
 
             case '*':
-                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-                result1 = correctNum1 * correctNum2;
+    // For multiplication, we need to ensure the product stays within bounds
+    do {
+        correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+        correctNum2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum1));
+        result1 = correctNum1 * correctNum2;
+    } while (result1 > upperBound || result1 < lowerBound);
 
-                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-                result2 = correctNum3 * correctNum4;
-                break;
+    do {
+        correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+        correctNum4 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum3));
+        result2 = correctNum3 * correctNum4;
+    } while (result2 > upperBound || result2 < lowerBound);
+    break;
 
             case '/':
                 correctNum2 = getRandomNumberInRange(1, upperBound);
