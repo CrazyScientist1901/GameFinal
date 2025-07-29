@@ -63,52 +63,54 @@
 
     <script>
         // Initialize Firebase connection check
-        function checkFirebase() {
-            if (typeof db === 'undefined') {
-                document.getElementById('error').textContent = "Firebase not loaded. Please refresh the page.";
-                return false;
+        function waitForFirebase(callback) {
+            if (window.db) {
+                callback();
+            } else {
+                setTimeout(() => waitForFirebase(callback), 100);
             }
-            return true;
         }
 
         // Join game function
         function joinGame() {
-            if (!checkFirebase()) return;
-            
             const gameCode = document.getElementById('gameCode').value.trim();
             const errorEl = document.getElementById('error');
             
-            if (!gameCode || gameCode.length !== 4) {
+            if (!gameCode || gameCode.length !== 4 || !/^\d{4}$/.test(gameCode)) {
                 errorEl.textContent = "Please enter a valid 4-digit code";
                 return;
             }
 
-            // Check if game exists
-            db.ref('games/' + gameCode).once('value')
-                .then(snapshot => {
-                    const game = snapshot.val();
-                    
-                    if (!game || !game.isActive) {
-                        errorEl.textContent = "Game not found or has ended";
-                    } else {
-                        localStorage.setItem('currentGame', gameCode);
-                        localStorage.setItem('gameSettings', JSON.stringify({
-                            operations: game.operations,
-                            difficulty: game.difficulty
-                        }));
-                        window.location.href = "game.html";
-                    }
-                })
-                .catch(error => {
-                    console.error("Firebase error:", error);
-                    errorEl.textContent = "Failed to connect to the game. Check your internet.";
-                });
+            waitForFirebase(() => {
+                db.ref('games/' + gameCode).once('value')
+                    .then(snapshot => {
+                        const game = snapshot.val();
+                        
+                        if (!game || !game.isActive) {
+                            errorEl.textContent = "Game not found or has ended";
+                        } else {
+                            localStorage.setItem('currentGame', gameCode);
+                            localStorage.setItem('gameSettings', JSON.stringify({
+                                operations: game.operations,
+                                difficulty: game.difficulty
+                            }));
+                            window.location.href = "game.html";
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Firebase error:", error);
+                        errorEl.textContent = "Failed to connect to the game. Check your internet.";
+                    });
+            });
         }
 
         // Add event listener when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('joinButton').addEventListener('click', joinGame);
         });
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
