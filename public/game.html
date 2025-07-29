@@ -284,6 +284,9 @@ function generatePuzzle(difficulty, operator) {
     let minResult = Math.pow(10, difficulty - 1);
     let maxResult = Math.pow(10, difficulty) - 1;
     let num1, num2, result;
+    const operator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
+    const puzzle = generatePuzzle(difficulty, operator);
+
 
     switch (operator) {
         case '+':
