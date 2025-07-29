@@ -4,141 +4,233 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Math Game</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="firebase.js"></script>
+    <!-- Import firebase.js as a module -->
+    <script type="module" src="firebase.js"></script>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Inter', sans-serif; /* Using Inter as per instructions */
             background-color: #f3f4f6;
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh; /* Use min-height to ensure full viewport height */
+            overflow: auto; /* Allow scrolling if content exceeds viewport */
         }
         .container {
-            max-width: 400px;
-            width: 100%;
+            max-width: 450px; /* Slightly increased max-width for better spacing */
+            width: 95%; /* Responsive width */
             background-color: #ffffff;
-            padding: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            padding: 20px; /* Increased padding */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* Stronger shadow */
+            border-radius: 12px; /* More rounded corners */
             text-align: center;
-            overflow-y: auto;
-            height: 90vh;
+            margin: 20px auto; /* Add margin for vertical spacing */
         }
         h1 {
             color: #4A90E2;
-            font-size: 26px;
-            margin-bottom: 10px;
+            font-size: 28px; /* Larger font size */
+            margin-bottom: 15px;
+            font-weight: 700; /* Bold title */
         }
         p {
-            color: #777;
-            font-size: 14px;
+            color: #555; /* Slightly darker text for readability */
+            font-size: 15px;
             margin-bottom: 15px;
         }
         input[type="number"], input[type="text"], select {
-            width: 90%;
-            padding: 10px;
-            margin: 5px 0;
+            width: calc(100% - 20px); /* Account for padding */
+            padding: 12px; /* Larger padding */
+            margin: 8px 0; /* Increased margin */
             font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 1px solid #ccc; /* Lighter border */
+            border-radius: 8px; /* Rounded input fields */
             box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         input[type="number"]:focus, input[type="text"]:focus, select:focus {
             border-color: #4A90E2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2); /* Focus ring effect */
             outline: none;
+        }
+        label {
+            display: block; /* Make labels block-level for better spacing */
+            text-align: left;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
         }
         button {
             background-color: #4A90E2;
             color: white;
-            padding: 10px;
+            padding: 12px 25px; /* More padding for buttons */
             border: none;
-            border-radius: 4px;
+            border-radius: 8px; /* Rounded buttons */
             cursor: pointer;
-            font-size: 16px;
-            margin-top: 15px;
-            width: 90%;
-            transition: background-color 0.3s;
+            font-size: 17px; /* Larger font size */
+            margin-top: 20px; /* More margin */
+            width: calc(100% - 20px);
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Button shadow */
         }
         button:hover {
             background-color: #357ABD;
+            transform: translateY(-2px); /* Slight lift effect */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         button:disabled {
-            background-color: #ccc;
+            background-color: #cccccc;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         .parent {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin: 15px 0;
+            gap: 10px; /* Increased gap */
+            margin: 20px 0;
+            align-items: center; /* Vertically align items */
         }
         .operator {
-            font-size: 24px;
-            align-self: center;
-            color: #333;
-        }
-        #score,
-        #round {
-            font-size: 18px;
+            font-size: 32px; /* Larger operator */
             font-weight: bold;
             color: #333;
+            align-self: center;
+        }
+        #score, #round, #userIdDisplay {
+            font-size: 19px; /* Larger score/round info */
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
         }
         #answerBox {
-            color: green;
-            margin-top: 10px;
+            margin-top: 15px;
             font-weight: bold;
-            min-height: 60px;
+            min-height: 40px; /* Ensure space for messages */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
         }
         .correct {
-            color: green;
+            color: #1a7a1a; /* Darker green */
+            background-color: #e6ffe6; /* Light green background */
+            border: 1px solid #1a7a1a;
         }
         .wrong {
-            color: red;
+            color: #cc0000; /* Darker red */
+            background-color: #ffe6e6; /* Light red background */
+            border: 1px solid #cc0000;
         }
         .game-info {
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f0f8ff;
-            border-radius: 5px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #e0f2f7; /* Lighter blue background */
+            border-radius: 8px;
+            text-align: left;
+            font-size: 14px;
+            color: #444;
+            border: 1px solid #b3e0ed;
         }
-        @media (max-width: 480px) {
+        .game-info p {
+            margin: 5px 0;
+        }
+        .game-info strong {
+            color: #2a658a;
+        }
+
+        /* Custom Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 25px;
+            border: 1px solid #888;
+            border-radius: 10px;
+            width: 80%; /* Could be more responsive */
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            color: #4A90E2;
+        }
+        .modal-content p {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .modal-content button {
+            background-color: #4A90E2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: auto; /* Override full width for modal button */
+        }
+        .modal-content button:hover {
+            background-color: #357ABD;
+        }
+
+        @media (max-width: 600px) {
             .container {
-                padding: 10px;
+                padding: 15px;
+                width: 98%;
             }
             h1 {
-                font-size: 24px;
+                font-size: 26px;
             }
-            input[type="number"] {
-                font-size: 14px;
-            }
-            button {
-                font-size: 14px;
-                padding: 8px;
+            input[type="number"], input[type="text"], select, button {
+                width: 100%; /* Full width for smaller screens */
+                padding: 10px;
             }
             .parent {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr; /* Stack elements on small screens */
+            }
+            .operator {
+                margin-top: 10px;
+                margin-bottom: 10px;
             }
         }
-    </style>    
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Math Game</h1>
         <p>Enter your details to start the game</p>
+        <label for="name">Your Name:</label>
         <input type="text" id="name" placeholder="Name">
-        <label for="class">Select Class </label>
+        <label for="gameCodeInput">Game Code (Ask your teacher):</label>
+        <input type="text" id="gameCodeInput" placeholder="e.g., MATH101">
+        <label for="class">Select Class:</label>
         <select name="class" id="class">
             <option value="6">6</option>
             <option value="7">7</option>
             <option value="8">8</option>
         </select>
-        <label for="section">Select Section </label>
+        <label for="section">Select Section:</label>
         <select name="section" id="section">
             <option value="A">A</option>
             <option value="B">B</option>
@@ -148,7 +240,9 @@
             <option value="F">F</option>
         </select>
         <button onclick="startGame()">Start Game</button>
+
         <div class="game-info">
+            <p>Your User ID: <strong id="userIdDisplay">Loading...</strong></p>
             <p>Game Code: <strong id="displayGameCode">Loading...</strong></p>
             <p>Allowed Operations: <span id="displayOperations">Loading...</span></p>
             <p>Difficulty: <span id="displayDifficulty">Loading...</span>-digit numbers</p>
@@ -158,18 +252,23 @@
             <p>Round: <span id="round">1</span> / 10</p>
             <div class="parent">
                 <input type="number" id="num1" placeholder="Number 1" min="0">
+                <span class="operator" id="operator1_2">+</span> <!-- Operator between num1 and num2 -->
                 <input type="number" id="num2" placeholder="Number 2" min="0">
-                <input type="number" id="result1" placeholder="Result 1" readonly>
             </div>
             <div class="parent">
                 <input type="number" id="num3" placeholder="Number 3" min="0">
+                <span class="operator" id="operator3_4">+</span> <!-- Operator between num3 and num4 -->
                 <input type="number" id="num4" placeholder="Number 4" min="0">
+            </div>
+            <div class="parent">
+                <input type="number" id="result1" placeholder="Result 1" readonly>
+                <span class="operator" id="operator_results">-</span> <!-- Operator between results -->
                 <input type="number" id="result2" placeholder="Result 2" readonly>
             </div>
             <div class="parent">
                 <input type="number" id="result3" placeholder="Result 3" readonly>
+                <span class="operator" id="operator_final">=</span> <!-- Final operator -->
                 <input type="number" id="result4" placeholder="Result 4" readonly>
-                <span id="operator" class="operator">-</span>
             </div>
             <button id="generateBtn" onclick="generatePuzzle()" disabled>Generate Puzzle</button>
             <button id="checkBtn" onclick="checkResults()" disabled>Check</button>
@@ -179,45 +278,142 @@
         </div>
     </div>
 
-    <script>
-        // Firebase configuration (should be in firebase.js)
-        
-        
+    <!-- Custom Message Box Modal -->
+    <div id="messageBox" class="modal">
+        <div class="modal-content">
+            <h3 id="messageTitle"></h3>
+            <p id="messageText"></p>
+            <button onclick="hideMessage()">OK</button>
+        </div>
+    </div>
 
+    <script type="module">
+        // Import Firebase objects from firebase.js
+        import { db, onSnapshot, doc, setDoc, getUserId, getIsAuthReady, appId } from './firebase.js';
 
         let score = 0;
         let round = 1;
         const maxRounds = 10;
-        let currentOperator = ' ';
+        let currentOperator = '+'; // Default operator
         let correctNum1, correctNum2, correctNum3, correctNum4;
         let result1, result2, result3, result4;
         let gameEnded = false;
         
-        // Game settings
-        let allowedOperations = ['+', '-', 'X', '÷'];
-        let difficulty = 2;
-        let gameCode = '';
-        
+        // Game settings (will be loaded from Firebase)
+        let allowedOperations = ['+', '-']; // Default, will be overridden by game settings
+        let difficulty = 1; // Default, will be overridden by game settings
+        let gameCode = ''; // Game code entered by the student
+
         // DOM elements
         const displayGameCode = document.getElementById('displayGameCode');
         const displayOperations = document.getElementById('displayOperations');
         const displayDifficulty = document.getElementById('displayDifficulty');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const generateBtn = document.getElementById("generateBtn");
+        const checkBtn = document.getElementById("checkBtn");
+        const startGameBtn = document.querySelector("button[onclick='startGame()']");
+        const answerBox = document.getElementById("answerBox");
+
+        // --- Custom Message Box Functions ---
+        function showMessage(title, message, type = "info") {
+            const messageBox = document.getElementById('messageBox');
+            const messageTitle = document.getElementById('messageTitle');
+            const messageText = document.getElementById('messageText');
+
+            messageTitle.textContent = title;
+            messageText.textContent = message;
+            
+            // Optional: Add styling based on type (e.g., "error", "success")
+            if (type === "error") {
+                messageTitle.style.color = "#cc0000";
+            } else if (type === "success") {
+                messageTitle.style.color = "#1a7a1a";
+            } else {
+                messageTitle.style.color = "#4A90E2";
+            }
+
+            messageBox.style.display = 'flex'; // Use flex to center content
+        }
+
+        function hideMessage() {
+            document.getElementById('messageBox').style.display = 'none';
+        }
+
+        // --- Game Initialization and Start ---
+        async function initGame() {
+            // Wait for authentication to be ready from firebase.js
+            if (!getIsAuthReady()) {
+                setTimeout(initGame, 100);
+                return;
+            }
+
+            userIdDisplay.textContent = getUserId(); // Display user ID
+
+            // Try to get gameCode from localStorage or prompt user
+            gameCode = localStorage.getItem('currentGameCode') || document.getElementById('gameCodeInput').value.trim();
+            if (!gameCode) {
+                // If no game code, default to a sample or prompt for one
+                gameCode = "SAMPLEGAME"; // Default game code for demonstration
+                showMessage("Welcome!", "Please enter a Game Code to join a game, or use the default 'SAMPLEGAME'.", "info");
+            }
+            document.getElementById('gameCodeInput').value = gameCode; // Populate input with current game code
+
+            displayGameCode.textContent = gameCode;
+            displayOperations.textContent = "Loading...";
+            displayDifficulty.textContent = "Loading...";
+
+            // Listen for game settings from Firestore
+            const gameSettingsRef = doc(db, `artifacts/${appId}/public/data/mathGames`, gameCode);
+            onSnapshot(gameSettingsRef, (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const settings = docSnapshot.data();
+                    allowedOperations = settings.operations || ['+', '-'];
+                    difficulty = parseInt(settings.difficulty) || 1;
+                    
+                    displayOperations.textContent = allowedOperations.join(', ');
+                    displayDifficulty.textContent = difficulty;
+
+                    // Set max number based on difficulty
+                    const maxNumber = Math.pow(10, difficulty) - 1;
+                    document.getElementById('num1').max = maxNumber;
+                    document.getElementById('num2').max = maxNumber;
+                    document.getElementById('num3').max = maxNumber;
+                    document.getElementById('num4').max = maxNumber;
+
+                    if (!settings.isActive) {
+                        showMessage("Game Ended", "The teacher has ended this game session.", "info");
+                        endGame();
+                    }
+                } else {
+                    showMessage("Game Not Found", `Game code "${gameCode}" not found. Please check with your teacher or create one.`, "error");
+                    endGame(); // End game if settings not found
+                }
+            }, (error) => {
+                console.error("Error fetching game settings:", error);
+                showMessage("Error", "Could not load game settings. Please check your connection.", "error");
+                endGame();
+            });
+        }
 
         function startGame() {
             const playerName = document.getElementById("name").value.trim();
             const playerClass = document.getElementById("class").value;
             const playerSection = document.getElementById("section").value;
+            const enteredGameCode = document.getElementById("gameCodeInput").value.trim();
 
-            if (!playerName || !playerClass || !playerSection) {
-                alert("Please enter all details to start the game");
+            if (!playerName || !playerClass || !playerSection || !enteredGameCode) {
+                showMessage("Missing Info", "Please enter your Name, Game Code, Class, and Section to start the game.", "info");
                 return;
             }
 
+            gameCode = enteredGameCode; // Update gameCode with entered value
+            localStorage.setItem('currentGameCode', gameCode); // Store for persistence
+
+            // Store current player info in local storage (for display purposes, score saved to Firestore)
             localStorage.setItem("currentPlayer", JSON.stringify({
                 name: playerName,
                 class: playerClass,
-                section: playerSection,
-                score: 0
+                section: playerSection
             }));
 
             document.getElementById("game").style.display = "block";
@@ -228,182 +424,149 @@
             gameEnded = false;
             document.getElementById("score").textContent = "Score: " + score;
             document.getElementById("round").textContent = round;
-            document.getElementById("answerBox").textContent = "";
+            answerBox.textContent = "";
             
-            // Enable generate button
-            document.getElementById("generateBtn").disabled = false;
-            document.getElementById("checkBtn").disabled = true;
-            document.querySelector("button[onclick='startGame()']").disabled = true;
+            // Disable start game button, enable generate button
+            startGameBtn.disabled = true;
+            generateBtn.disabled = false;
+            checkBtn.disabled = true;
             
             // Generate first puzzle
             generatePuzzle();
         }
-        
-        function initGame() {
-            const settings = JSON.parse(localStorage.getItem('gameSettings'));
-            gameCode = localStorage.getItem('currentGame');
-            
-            if (!settings || !gameCode) {
-                alert("No game settings found. Please join a game first.");
+
+        function endGame() {
+            gameEnded = true;
+            generateBtn.disabled = true;
+            checkBtn.disabled = true;
+            startGameBtn.disabled = false; // Allow starting a new game
+            document.getElementById("game").style.display = "none";
+            localStorage.removeItem('currentGameCode'); // Clear game code
+        }
+
+        function getRandomNumberInRange(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // Generate numbers based on difficulty
+        function generatePuzzle() {
+            if (gameEnded) return;
+
+            if (round > maxRounds) {
+                gameEnded = true;
+                savePlayerData();
+                showMessage("Game Over!", `Your final score is: ${score} out of ${maxRounds}.`, "success");
+                setTimeout(() => {
+                    endGame();
+                }, 500);
                 return;
             }
+
+            document.getElementById("round").textContent = round;
+            generateBtn.disabled = true;
+            checkBtn.disabled = false;
+
+            currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
             
-            allowedOperations = settings.operations;
-            difficulty = parseInt(settings.difficulty);
+            // Update operator display
+            const displayOp = currentOperator === '*' ? 'X' : (currentOperator === '/' ? '÷' : currentOperator);
+            document.getElementById("operator1_2").textContent = displayOp;
+            document.getElementById("operator3_4").textContent = displayOp;
+            document.getElementById("operator_results").textContent = '-'; // This operator is always subtraction in the layout
+            document.getElementById("operator_final").textContent = '=';
+
+            // Clear previous inputs
+            ['num1', 'num2', 'num3', 'num4'].forEach(id => document.getElementById(id).value = '');
+            ['result1', 'result2', 'result3', 'result4'].forEach(id => document.getElementById(id).value = '');
+            answerBox.textContent = '';
+            answerBox.className = '';
+
+            const lowerBound = Math.pow(10, difficulty - 1);
+            const upperBound = Math.pow(10, difficulty) - 1;
             
-            // Update UI with game info
-            displayGameCode.textContent = gameCode;
-            displayOperations.textContent = allowedOperations.join(', ');
-            displayDifficulty.textContent = difficulty;
-            
-            // Set max number based on difficulty
-            const maxNumber = Math.pow(10, difficulty) - 1;
-            document.getElementById('num1').max = maxNumber;
-            document.getElementById('num2').max = maxNumber;
-            document.getElementById('num3').max = maxNumber;
-            document.getElementById('num4').max = maxNumber;
-            
-            // Monitor game status
-            db.ref('games/' + gameCode).on('value', (snapshot) => {
-                const game = snapshot.val();
-                if (!game || !game.isActive) {
-                    alert("The teacher has ended this game session.");
-                    window.location.href = "student-join.html";
+            // For multiplication, ensure numbers are small enough to not exceed upperBound
+            // For example, if difficulty is 2 (max 99), sqrt(99) is ~9. So max factor is 9.
+            const multiplicationFactorUpper = Math.floor(Math.sqrt(upperBound)); 
+            const multiplicationLowerBound = Math.max(1, lowerBound); // Ensure not 0 for lower bound
+
+            let validPuzzleGenerated = false;
+            while (!validPuzzleGenerated) {
+                try {
+                    switch (currentOperator) {
+                        case '+':
+                            correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+                            correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
+                            correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+                            correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
+                            break;
+
+                        case '-':
+                            correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+                            correctNum2 = getRandomNumberInRange(lowerBound, correctNum1); // Ensure num1 >= num2
+                            correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+                            correctNum4 = getRandomNumberInRange(lowerBound, correctNum3); // Ensure num3 >= num4
+                            break;
+
+                        case '*':
+                            correctNum1 = getRandomNumberInRange(multiplicationLowerBound, multiplicationFactorUpper);
+                            correctNum2 = getRandomNumberInRange(multiplicationLowerBound, multiplicationFactorUpper);
+                            correctNum3 = getRandomNumberInRange(multiplicationLowerBound, multiplicationFactorUpper);
+                            correctNum4 = getRandomNumberInRange(multiplicationLowerBound, multiplicationFactorUpper);
+                            break;
+
+                        case '/':
+                        case '÷':
+                            // For division, generate result and divisor, then calculate dividend
+                            // Ensure divisor is not zero and dividend is a multiple of divisor
+                            let tempResult1, tempResult2;
+                            let tempDivisor1, tempDivisor2;
+
+                            // First equation: num1 / num2 = result1
+                            tempDivisor1 = getRandomNumberInRange(1, multiplicationFactorUpper); // Small divisor for manageable numbers
+                            tempResult1 = getRandomNumberInRange(lowerBound, upperBound);
+                            correctNum1 = tempResult1 * tempDivisor1;
+                            correctNum2 = tempDivisor1;
+
+                            // Second equation: num3 / num4 = result2
+                            tempDivisor2 = getRandomNumberInRange(1, multiplicationFactorUpper);
+                            tempResult2 = getRandomNumberInRange(lowerBound, upperBound);
+                            correctNum3 = tempResult2 * tempDivisor2;
+                            correctNum4 = tempDivisor2;
+                            break;
+                    }
+
+                    // Calculate results for the puzzle
+                    result1 = eval(`${correctNum1} ${currentOperator} ${correctNum2}`);
+                    result2 = eval(`${correctNum3} ${currentOperator} ${correctNum4}`);
+                    result3 = correctNum1 - correctNum3; // This is fixed as subtraction
+                    result4 = correctNum2 - correctNum4; // This is fixed as subtraction
+
+                    // Validate all results are within reasonable bounds and are integers for division
+                    if (
+                        result1 >= 0 && result1 <= upperBound && Number.isInteger(result1) &&
+                        result2 >= 0 && result2 <= upperBound && Number.isInteger(result2) &&
+                        result3 >= 0 && result3 <= upperBound && Number.isInteger(result3) &&
+                        result4 >= 0 && result4 <= upperBound && Number.isInteger(result4)
+                    ) {
+                        validPuzzleGenerated = true;
+                    }
+                } catch (e) {
+                    console.warn("Retrying puzzle generation due to error:", e);
+                    // Continue loop if an error occurs (e.g., division by zero if not perfectly handled)
                 }
-            });
+            }
+
+            document.getElementById("result1").value = result1;
+            document.getElementById("result2").value = result2;
+            document.getElementById("result3").value = result3;
+            document.getElementById("result4").value = result4;
         }
-        
-        function getRandomNumberInRange(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-
-                    
-            // Generate numbers based on difficulty
-function generatePuzzle() {
-    if (gameEnded) return;
-
-    if (round > maxRounds) {
-        gameEnded = true;
-        savePlayerData();
-        setTimeout(() => {
-            alert("Game Over! Your final score is: " + score);
-            document.getElementById("game").style.display = "none";
-            document.querySelector("button[onclick='startGame()']").disabled = false;
-        }, 500);
-        return;
-    }
-
-    document.getElementById("round").textContent = round;
-    document.getElementById("generateBtn").disabled = true;
-    document.getElementById("checkBtn").disabled = false;
-
-    currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
-    if (currentOperator === 'X') currentOperator = '*';
-    document.getElementById("operator").textContent = currentOperator === '*' ? 'X' : currentOperator;
-
-    // Clear previous inputs
-    ['num1', 'num2', 'num3', 'num4'].forEach(id => document.getElementById(id).value = '');
-    ['result1', 'result2', 'result3', 'result4'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById("answerBox").textContent = '';
-    document.getElementById("answerBox").className = '';
-
-    const lowerBound = Math.pow(10, difficulty - 1);
-    const upperBound = Math.pow(10, difficulty) - 1;
-    const resultBound = upperBound;
-    const multiplicationSafeUpper = Math.floor(Math.sqrt(resultBound));
-
-    let valid = false;
-
-    while (!valid) {
-        switch (currentOperator) {
-            case '+':
-                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-                result1 = correctNum1 + correctNum2;
-
-                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-                result2 = correctNum3 + correctNum4;
-                break;
-
-            case '-':
-                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum2 = getRandomNumberInRange(lowerBound, correctNum1);
-                result1 = correctNum1 - correctNum2;
-
-                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum4 = getRandomNumberInRange(lowerBound, correctNum3);
-                result2 = correctNum3 - correctNum4;
-                break;
-
-            case '*':
-                correctNum1 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-                correctNum2 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-                result1 = correctNum1 * correctNum2;
-
-                correctNum3 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-                correctNum4 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-                result2 = correctNum3 * correctNum4;
-                break;
-
-            case '÷':
-            case '/':
-                correctNum2 = getRandomNumberInRange(1, upperBound);
-                result1 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum1 = result1 * correctNum2;
-
-                correctNum4 = getRandomNumberInRange(1, upperBound);
-                result2 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum3 = result2 * correctNum4;
-                break;
-        }
-        }
-
-        // Common Result Calculations
-        switch (currentOperator) {
-            case '+':
-                result3 = correctNum1 + correctNum3;
-                result4 = correctNum2 + correctNum4;
-                break;
-            case '-':
-                result3 = correctNum1 - correctNum3;
-                result4 = correctNum2 - correctNum4;
-                break;
-            case '*':
-                result3 = correctNum1 * correctNum3;
-                result4 = correctNum2 * correctNum4;
-                break;
-            case '÷':
-            case '/':
-                result3 = correctNum3 !== 0 ? correctNum1 / correctNum3 : 0;
-                result4 = correctNum4 !== 0 ? correctNum2 / correctNum4 : 0;
-                break;
-        }
-
-        if (
-            result1 <= resultBound && result2 <= resultBound &&
-            result3 <= resultBound && result4 <= resultBound
-        ) {
-            valid = true;
-        }
-    }
-
-    document.getElementById("result1").value = result1;
-    document.getElementById("result2").value = result2;
-    document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
-    document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
-}
-
-
-              
-           
+            
         function checkResults() {
             const num1 = parseFloat(document.getElementById("num1").value);
             const num2 = parseFloat(document.getElementById("num2").value);
             const num3 = parseFloat(document.getElementById("num3").value);
             const num4 = parseFloat(document.getElementById("num4").value);
-            const answerBox = document.getElementById("answerBox");
             
             if (isNaN(num1) || isNaN(num2) || isNaN(num3) || isNaN(num4)) {
                 answerBox.innerText = "Please fill in all numbers!";
@@ -412,36 +575,22 @@ function generatePuzzle() {
             }
             
             let allCorrect = true;
-            switch(currentOperator) {
-                case '+':
-                    allCorrect = (num1 + num2 === result1) && 
-                                 (num3 + num4 === result2) &&
-                                 (num1 + num3 === result3) &&
-                                 (num2 + num4 === result4);
-                    break;
-                case '-':
-                    allCorrect = (num1 - num2 === result1) && 
-                                 (num3 - num4 === result2) &&
-                                 (num1 - num3 === result3) &&
-                                 (num2 - num4 === result4);
-                    break;
-                case 'X':
-                    allCorrect = (num1 * num2 === result1) && 
-                                 (num3 * num4 === result2) &&
-                                 (num1 * num3 === result3) &&
-                                 (num2 * num4 === result4);
-                    break;
-                 case '÷':
-                    if (num2 === 0 || num4 === 0 || num3 === 0) {
-                        allCorrect = false;
-                        break;
-                    }
-                    allCorrect = (Math.abs(num1 / num2 - result1) < 0.0001) && 
-                                 (Math.abs(num3 / num4 - result2) < 0.0001) &&
-                                 (Math.abs(num1 / num3 - result3) < 0.0001) &&
-                                 (Math.abs(num2 / num4 - result4) < 0.0001);
-                    break;
+            // Check the first two equations based on the current operator
+            let equation1Correct, equation2Correct;
+
+            if (currentOperator === '/' || currentOperator === '÷') {
+                equation1Correct = (num2 !== 0 && Math.abs(num1 / num2 - result1) < 0.0001);
+                equation2Correct = (num4 !== 0 && Math.abs(num3 / num4 - result2) < 0.0001);
+            } else {
+                equation1Correct = (eval(`${num1} ${currentOperator} ${num2}`) === result1);
+                equation2Correct = (eval(`${num3} ${currentOperator} ${num4}`) === result2);
             }
+
+            // Check the fixed subtraction equations
+            const equation3Correct = (num1 - num3 === result3);
+            const equation4Correct = (num2 - num4 === result4);
+
+            allCorrect = equation1Correct && equation2Correct && equation3Correct && equation4Correct;
             
             if (allCorrect) {
                 score++;
@@ -450,40 +599,56 @@ function generatePuzzle() {
                 answerBox.className = "correct";
             } else {
                 answerBox.innerHTML = `Incorrect!<br>Correct answers:<br>
-                    num1 = ${correctNum1}<br>
-                    num2 = ${correctNum2}<br>
-                    num3 = ${correctNum3}<br>
-                    num4 = ${correctNum4}`;
+                    Num1 = ${correctNum1}<br>
+                    Num2 = ${correctNum2}<br>
+                    Num3 = ${correctNum3}<br>
+                    Num4 = ${correctNum4}`;
                 answerBox.className = "wrong";
             }
             
             round++;
-            document.getElementById("checkBtn").disabled = true;
-            document.getElementById("generateBtn").disabled = false;
+            checkBtn.disabled = true;
+            generateBtn.disabled = false;
         }
 
-        function savePlayerData() {
+        async function savePlayerData() {
+            if (!getIsAuthReady() || !getUserId()) {
+                console.error("Authentication not ready or userId not available. Cannot save data.");
+                showMessage("Error", "Could not save your score. Please try again.", "error");
+                return;
+            }
+
             const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
             if (currentPlayer) {
-                currentPlayer.score = score;
-                localStorage.setItem("currentPlayer", JSON.stringify(currentPlayer));
+                const playerDocRef = doc(db, `artifacts/${appId}/users/${getUserId()}/mathGameScores`, currentPlayer.name.replace(/[^a-zA-Z0-9]/g, '_')); // Use sanitized name as doc ID
                 
-                const playerRef = db.ref('players/' + currentPlayer.name.replace('.', '_'));
-                playerRef.set(currentPlayer)
-                    .then(() => console.log('Player data saved to Firebase'))
-                    .catch(error => console.error('Error saving data:', error));
+                try {
+                    await setDoc(playerDocRef, {
+                        name: currentPlayer.name,
+                        class: currentPlayer.class,
+                        section: currentPlayer.section,
+                        score: score,
+                        timestamp: new Date().toISOString(),
+                        gameCode: gameCode,
+                        difficulty: difficulty,
+                        operations: allowedOperations
+                    }, { merge: true }); // Use merge to update existing fields or create if not exists
+                    console.log('Player data saved to Firestore');
+                } catch (error) {
+                    console.error('Error saving player data to Firestore:', error);
+                    showMessage("Save Error", "Failed to save your score. Please try again.", "error");
+                }
             }
         }
         
-        // Initialize the game when page loads
-        window.onload = function() {
-            try {
-                initGame();
-            } catch (error) {
-                console.error("Error initializing game:", error);
-                alert("Error initializing game. Please check your connection and try again.");
-            }
-        };
+        // Initialize the game when the window loads (after Firebase is ready)
+        window.addEventListener('load', () => {
+             // initGame is called by onAuthStateChanged in firebase.js once auth is ready
+             // We call it here as well to ensure it runs after the main script is loaded
+             initGame(); 
+        });
+
+        
     </script>
 </body>
 </html>
