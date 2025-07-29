@@ -78,20 +78,28 @@
         // Debugging check
         console.log("Firebase initialized:", firebase.apps.length > 0);
 
-        function joinGame() {
-            // TEMPORARY HARDCODED TEST - REMOVE LATER
-            localStorage.setItem('currentGame', '1234');
-            localStorage.setItem('gameSettings', JSON.stringify({
-                operations: ['+', '-'],
-                difficulty: '2'
-            }));
-            
-            // Try these one at a time to see what works:
-            // window.location.href = "game.html";          // Same directory
-            // window.location.href = "/game.html";         // Root directory
-            window.location.href = "/game.html";    // Full path
-            // window.location.href = "../public/game.html"; // Relative path
-        }
+       function joinGame() {
+    const gameCode = document.getElementById('gameCode').value.trim();
+    
+    // ... (validation code)
+
+    db.ref('games/' + gameCode).once('value')
+        .then(snapshot => {
+            const game = snapshot.val();
+            if (!game || !game.isActive) {
+                errorEl.textContent = "Game not found or has ended";
+            } else {
+                // ✅ Store ALL game data
+                localStorage.setItem('currentGame', gameCode);
+                localStorage.setItem('gameSettings', JSON.stringify({
+                    operations: game.operations,
+                    difficulty: game.difficulty,
+                    isActive: game.isActive  // 👈 Crucial addition
+                }));
+                window.location.href = "/game.html";
+            }
+        });
+}
 
         document.getElementById('joinButton').addEventListener('click', joinGame);
     </script>
