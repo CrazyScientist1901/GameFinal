@@ -240,13 +240,30 @@
         }
         
         function initGame() {
-            const settings = JSON.parse(localStorage.getItem('gameSettings'));
-            gameCode = localStorage.getItem('currentGame');
-            
-            if (!settings || !gameCode) {
-                alert("No game settings found. Please join a game first.");
-                return;
-            }
+    // ✅ Get BOTH settings and game code
+    const settings = JSON.parse(localStorage.getItem('gameSettings'));
+    gameCode = localStorage.getItem('currentGame');
+    
+    if (!settings || !gameCode) {
+        alert("No game settings found. Please join a game first.");
+        return;
+    }
+
+    // ✅ Use the isActive flag from localStorage first
+    if (!settings.isActive) {
+        alert("The teacher has ended this game session.");
+        window.location.href = "student-join.html";
+        return;
+    }
+
+    // ✅ Then verify with Firebase
+    db.ref('games/' + gameCode).on('value', (snapshot) => {
+        const game = snapshot.val();
+        if (!game || !game.isActive) {
+            alert("The teacher has ended this game session.");
+            window.location.href = "student-join.html";
+        }
+    });
             
             allowedOperations = settings.operations;
             difficulty = parseInt(settings.difficulty);
