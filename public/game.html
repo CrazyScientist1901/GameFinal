@@ -302,9 +302,11 @@ function generatePuzzle() {
     if (currentOperator === 'X') currentOperator = '*';
     document.getElementById("operator").textContent = currentOperator === '*' ? 'X' : currentOperator;
 
-    // Clear previous inputs
-    ['num1', 'num2', 'num3', 'num4'].forEach(id => document.getElementById(id).value = '');
-    ['result1', 'result2', 'result3', 'result4'].forEach(id => document.getElementById(id).value = '');
+    // Clear previous inputs but keep results
+    ['num1', 'num2', 'num3', 'num4'].forEach(id => {
+        document.getElementById(id).value = '';
+        document.getElementById(id).style.backgroundColor = ''; // Reset background color if any
+    });
     document.getElementById("answerBox").textContent = '';
     document.getElementById("answerBox").className = '';
 
@@ -313,7 +315,7 @@ function generatePuzzle() {
 
     let valid = false;
     let attempts = 0;
-    const maxAttempts = 100; // Prevent infinite loops
+    const maxAttempts = 100;
 
     while (!valid && attempts < maxAttempts) {
         attempts++;
@@ -340,7 +342,6 @@ function generatePuzzle() {
                 break;
 
             case '*':
-                // Generate numbers that when multiplied stay within bounds
                 correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
                 correctNum2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum1));
                 result1 = correctNum1 * correctNum2;
@@ -381,20 +382,14 @@ function generatePuzzle() {
                 break;
         }
 
-        // Validate all results stay within bounds
+        // Validate all results
         valid = true;
         const results = [result1, result2, result3, result4];
         for (const result of results) {
-            if (result > upperBound || result < lowerBound) {
+            if (result > upperBound || result < lowerBound || isNaN(result)) {
                 valid = false;
                 break;
             }
-        }
-        
-        // Additional check for division
-        if (currentOperator === '/' && 
-            (Math.abs(result3) < 0.01 || Math.abs(result4) < 0.01)) {
-            valid = false;
         }
     }
 
@@ -405,12 +400,20 @@ function generatePuzzle() {
         return;
     }
 
-    // Display results with proper formatting
+    // Display the results in the readonly fields
     document.getElementById("result1").value = Number.isInteger(result1) ? result1 : result1.toFixed(2);
     document.getElementById("result2").value = Number.isInteger(result2) ? result2 : result2.toFixed(2);
     document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
     document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
+
+    // Debug output to console
+    console.log("Generated puzzle:", {
+        num1: correctNum1, num2: correctNum2, result1: result1,
+        num3: correctNum3, num4: correctNum4, result2: result2,
+        result3: result3, result4: result4, operator: currentOperator
+    });
 }
+        
         function checkResults() {
             const num1 = parseFloat(document.getElementById("num1").value);
             const num2 = parseFloat(document.getElementById("num2").value);
