@@ -349,14 +349,18 @@ function generatePuzzle() {
                 break;
 
             case '*':
-                correctNum1 = getRandomNumberInRange(lowerBound, multiplicationOperandBound);
-                correctNum2 = getRandomNumberInRange(lowerBound, multiplicationOperandBound);
-                result1 = correctNum1 * correctNum2;
+    // For multiplication, limit both operands to 1-digit numbers when difficulty is 2
+    // This ensures the result won't be too large
+    const maxMultiplier = difficulty === 2 ? 9 : Math.pow(10, difficulty - 1) - 1;
+    
+    correctNum1 = getRandomNumberInRange(1, maxMultiplier);
+    correctNum2 = getRandomNumberInRange(1, maxMultiplier);
+    result1 = correctNum1 * correctNum2;
 
-                correctNum3 = getRandomNumberInRange(lowerBound, multiplicationOperandBound);
-                correctNum4 = getRandomNumberInRange(lowerBound, multiplicationOperandBound);
-                result2 = correctNum3 * correctNum4;
-                break;
+    correctNum3 = getRandomNumberInRange(1, maxMultiplier);
+    correctNum4 = getRandomNumberInRange(1, maxMultiplier);
+    result2 = correctNum3 * correctNum4;
+    break;
 
             case '/':
                 correctNum2 = getRandomNumberInRange(1, upperBound);
