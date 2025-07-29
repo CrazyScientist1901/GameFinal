@@ -437,6 +437,7 @@ function checkResults() {
     
     // Calculate what the results should be based on user's numbers
     let userResult1, userResult2, userResult3, userResult4;
+    let operationsValid = true;
     
     switch(currentOperator) {
         case '+':
@@ -459,19 +460,18 @@ function checkResults() {
             break;
         case '÷':
             if (num2 === 0 || num4 === 0) {
-                answerBox.innerText = "Cannot divide by zero!";
-                answerBox.className = "wrong";
-                return;
+                operationsValid = false;
+            } else {
+                userResult1 = num1 / num2;
+                userResult2 = num3 / num4;
+                userResult3 = num3 !== 0 ? num1 / num3 : NaN;
+                userResult4 = num4 !== 0 ? num2 / num4 : NaN;
             }
-            userResult1 = num1 / num2;
-            userResult2 = num3 / num4;
-            userResult3 = num3 !== 0 ? num1 / num3 : NaN;
-            userResult4 = num4 !== 0 ? num2 / num4 : NaN;
             break;
     }
     
     // Compare calculated results with expected results
-    const resultsMatch = (
+    const resultsMatch = operationsValid && (
         Math.abs(userResult1 - result1) < 0.0001 &&
         Math.abs(userResult2 - result2) < 0.0001 &&
         Math.abs(userResult3 - result3) < 0.0001 &&
@@ -484,12 +484,24 @@ function checkResults() {
         answerBox.innerText = "Correct!";
         answerBox.className = "correct";
     } else {
-                answerBox.innerHTML = `Incorrect!<br>Correct answers:<br>
-                    num1 = ${correctNum1}<br>
-                    num2 = ${correctNum2}<br>
-                    num3 = ${correctNum3}<br>
-                    num4 = ${correctNum4}`;
-                answerBox.className = "wrong";
+        // Check if the user happened to find an alternative correct solution
+        const isAlternativeSolution = (
+            (num1 === correctNum1 && num2 === correctNum2 && num3 === correctNum3 && num4 === correctNum4) ||
+            (num1 === correctNum3 && num2 === correctNum4 && num3 === correctNum1 && num4 === correctNum2)
+        );
+        
+        if (isAlternativeSolution) {
+            score++;
+            document.getElementById("score").textContent = "Score: " + score;
+            answerBox.innerText = "Correct! (Alternative solution)";
+            answerBox.className = "correct";
+        } else {
+            answerBox.innerHTML = `Incorrect!<br>Your numbers don't produce all the required results.<br>
+                One possible solution:<br>
+                ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum2} = ${result1}<br>
+                ${correctNum3} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result2}`;
+            answerBox.className = "wrong";
+        }
     }
     
     round++;
