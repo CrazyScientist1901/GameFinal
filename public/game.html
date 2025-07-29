@@ -422,7 +422,7 @@ function generatePuzzle() {
 
               
            
-       function checkResults() {
+     function checkResults() {
     const num1 = parseFloat(document.getElementById("num1").value);
     const num2 = parseFloat(document.getElementById("num2").value);
     const num3 = parseFloat(document.getElementById("num3").value);
@@ -435,50 +435,60 @@ function generatePuzzle() {
         return;
     }
     
-    // First check if the user's numbers produce all the correct results
-    let resultsCorrect = true;
+    // Calculate what the results should be based on user's numbers
+    let userResult1, userResult2, userResult3, userResult4;
+    
     switch(currentOperator) {
         case '+':
-            resultsCorrect = (num1 + num2 === result1) && 
-                           (num3 + num4 === result2) &&
-                           (num1 + num3 === result3) &&
-                           (num2 + num4 === result4);
+            userResult1 = num1 + num2;
+            userResult2 = num3 + num4;
+            userResult3 = num1 + num3;
+            userResult4 = num2 + num4;
             break;
         case '-':
-            resultsCorrect = (num1 - num2 === result1) && 
-                           (num3 - num4 === result2) &&
-                           (num1 - num3 === result3) &&
-                           (num2 - num4 === result4);
+            userResult1 = num1 - num2;
+            userResult2 = num3 - num4;
+            userResult3 = num1 - num3;
+            userResult4 = num2 - num4;
             break;
         case 'X':
-            resultsCorrect = (num1 * num2 === result1) && 
-                           (num3 * num4 === result2) &&
-                           (num1 * num3 === result3) &&
-                           (num2 * num4 === result4);
+            userResult1 = num1 * num2;
+            userResult2 = num3 * num4;
+            userResult3 = num1 * num3;
+            userResult4 = num2 * num4;
             break;
         case '÷':
-            if (num2 === 0 || num4 === 0 || num3 === 0) {
-                resultsCorrect = false;
-                break;
+            if (num2 === 0 || num4 === 0) {
+                answerBox.innerText = "Cannot divide by zero!";
+                answerBox.className = "wrong";
+                return;
             }
-            resultsCorrect = (Math.abs(num1 / num2 - result1) < 0.0001) && 
-                           (Math.abs(num3 / num4 - result2) < 0.0001) &&
-                           (Math.abs(num1 / num3 - result3) < 0.0001) &&
-                           (Math.abs(num2 / num4 - result4) < 0.0001);
+            userResult1 = num1 / num2;
+            userResult2 = num3 / num4;
+            userResult3 = num3 !== 0 ? num1 / num3 : NaN;
+            userResult4 = num4 !== 0 ? num2 / num4 : NaN;
             break;
     }
     
-    if (resultsCorrect) {
+    // Compare calculated results with expected results
+    const resultsMatch = (
+        Math.abs(userResult1 - result1) < 0.0001 &&
+        Math.abs(userResult2 - result2) < 0.0001 &&
+        Math.abs(userResult3 - result3) < 0.0001 &&
+        Math.abs(userResult4 - result4) < 0.0001
+    );
+    
+    if (resultsMatch) {
         score++;
         document.getElementById("score").textContent = "Score: " + score;
         answerBox.innerText = "Correct!";
         answerBox.className = "correct";
     } else {
-        answerBox.innerHTML = `Incorrect!<br>One possible solution:<br>
-            num1 = ${correctNum1}<br>
-            num2 = ${correctNum2}<br>
-            num3 = ${correctNum3}<br>
-            num4 = ${correctNum4}`;
+        answerBox.innerHTML = `Incorrect!<br>Expected results:<br>
+            ${num1} ${currentOperator === '*' ? 'X' : currentOperator} ${num2} = ${result1}<br>
+            ${num3} ${currentOperator === '*' ? 'X' : currentOperator} ${num4} = ${result2}<br>
+            ${num1} ${currentOperator === '*' ? 'X' : currentOperator} ${num3} = ${result3}<br>
+            ${num2} ${currentOperator === '*' ? 'X' : currentOperator} ${num4} = ${result4}`;
         answerBox.className = "wrong";
     }
     
