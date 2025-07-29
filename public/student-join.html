@@ -83,42 +83,53 @@
         }
 
         // Join game function
-        function joinGame() {
-            const gameCode = document.getElementById('gameCode').value.trim();
-            const errorEl = document.getElementById('error');
-            
-            if (!gameCode || gameCode.length !== 4 || !/^\d{4}$/.test(gameCode)) {
-                errorEl.textContent = "Please enter a valid 4-digit code";
-                return;
-            }
+       function joinGame() {
 
-            waitForFirebase(() => {
-                db.ref('games/' + gameCode).once('value')
-                    .then(snapshot => {
-                        const game = snapshot.val();
-                        
-                        if (!game || !game.isActive) {
-                            errorEl.textContent = "Game not found or has ended";
-                        } else {
-                            localStorage.setItem('currentGame', gameCode);
-                            localStorage.setItem('gameSettings', JSON.stringify({
-                                operations: game.operations,
-                                difficulty: game.difficulty
-                            }));
-                            window.location.href = "game.html";
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Firebase error:", error);
-                        errorEl.textContent = "Failed to connect to the game. Check your internet.";
-                    });
-            });
-        }
+            const gameCode = document.getElementById('gameCode').value;
 
-        // Add event listener when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('joinButton').addEventListener('click', joinGame);
-        });
+            if (!gameCode || gameCode.length !== 4) {
+
+                document.getElementById('error').textContent = "Please enter a valid 4-digit code";
+
+                return;
+
+            }
+
+            
+
+            // Check if game exists and is active
+
+            db.ref('games/' + gameCode).once('value').then(snapshot => {
+
+                const game = snapshot.val();
+
+                
+
+                if (!game || !game.isActive) {
+
+                    document.getElementById('error').textContent = "Game not found or has ended";
+
+                } else {
+
+                    // Save game code to localStorage and redirect
+
+                    localStorage.setItem('currentGame', gameCode);
+
+                    localStorage.setItem('gameSettings', JSON.stringify({
+
+                        operations: game.operations,
+
+                        difficulty: game.difficulty
+
+                    }));
+
+                    window.location.href = "game.html";
+
+                }
+
+            });
+
+        }
     </script>
 </body>
 </html>
