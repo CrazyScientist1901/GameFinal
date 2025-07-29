@@ -240,13 +240,15 @@
         }
         
         function initGame() {
-            const settings = JSON.parse(localStorage.getItem('gameSettings'));
-            gameCode = localStorage.getItem('currentGame');
-            
-            if (!settings || !gameCode) {
-                alert("No game settings found. Please join a game first.");
-                return;
-            }
+    try {
+        const settings = JSON.parse(localStorage.getItem('gameSettings'));
+        gameCode = localStorage.getItem('currentGame');
+        
+        if (!settings || !gameCode) {
+            alert("No game settings found. Please join a game first.");
+            window.location.href = "student-join.html"; // Redirect to join page
+            return;
+        }
             
             allowedOperations = settings.operations;
             difficulty = parseInt(settings.difficulty);
@@ -271,6 +273,10 @@
                     window.location.href = "student-join.html";
                 }
             });
+        } catch (error) {
+        console.error("Initialization error:", error);
+        alert("Error initializing game. Please try again.");
+    }
         }
         
         function getRandomNumberInRange(min, max) {
