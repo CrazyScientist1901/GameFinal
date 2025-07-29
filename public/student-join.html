@@ -1,121 +1,114 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Math Game</title>
+    <!-- Load Firebase first -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="firebase.js"></script> <!-- This defines `db` -->
+    <link rel="icon" href="data:,"> <!-- Prevents favicon.ico 404 error -->
+    
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 500px; 
+            margin: 20px auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        input { 
+            padding: 10px; 
+            width: calc(100% - 22px);
+            margin-bottom: 10px; 
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        
+        button { 
+            padding: 10px 15px; 
+            background: #4CAF50;
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
 
-    <title>Join Math Game</title>
-   <!-- Load Firebase first -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="firebase.js"></script> <!-- This defines `db` -->
-
-    <style>
-    body { 
-        font-family: Arial, sans-serif; 
-        max-width: 500px; 
-        margin: 20px auto;  /* Added vertical margin */
-        padding: 20px;
-        box-sizing: border-box; /* Include padding in width */
-    }
-    
-    input { 
-        padding: 10px; 
-        width: calc(100% - 22px); /* Account for padding and border */
-        margin-bottom: 10px; 
-        border: 1px solid #ddd; /* Added border */
-        box-sizing: border-box;
-    }
-    
-    button { 
-        padding: 10px 15px; 
-        background: #4CAF50;
-        color: white; 
-        border: none; 
-        border-radius: 4px; 
-        cursor: pointer;
-        width: 100%; /* Make button full width */
-        font-size: 16px; /* Consistent text size */
-    }
-    
-    button:hover {
-        background: #45a049; /* Hover effect */
-    }
-
-    #error { 
-        color: red; 
-        margin-top: 10px;
-        min-height: 20px; /* Prevent layout shift */
-    }
-    
-    h1 {
-        color: #333;
-        text-align: center; /* Center the heading */
-    }
-</style>
+        #error { 
+            color: red; 
+            margin-top: 10px;
+            min-height: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <h1>Join Math Game</h1>    
+    <h1>Join Math Game</h1>
+    <p>Enter the game code provided by your teacher:</p>
+    <input type="text" id="gameCode" placeholder="4-digit game code" maxlength="4">
+    <button id="joinButton">Join Game</button>
+    <p id="error"></p>
 
-    <p>Enter the game code provided by your teacher:</p>
-    <input type="text" id="gameCode" placeholder="4-digit game code" maxlength="4">
-    <button onclick="joinGame()">Join Game</button>
-    <p id="error"></p>
-
-    
-
-    <script>
-        function joinGame() {
-    const gameCode = document.getElementById('gameCode').value;
-    const errorEl = document.getElementById('error');
-    
-    if (!gameCode || gameCode.length !== 4) {
-        errorEl.textContent = "Please enter a valid 4-digit code";
-        return;
-    }
-
-    // Check if game exists
-    db.ref('games/' + gameCode).once('value')
-        .then(snapshot => {
-            const game = snapshot.val();
-            
-            if (!game || !game.isActive) {
-                errorEl.textContent = "Game not found or has ended";
-            } else {
-                localStorage.setItem('currentGame', gameCode);
-                localStorage.setItem('gameSettings', JSON.stringify({
-                    operations: game.operations,
-                    difficulty: game.difficulty
-                }));
-                window.location.href = "game.html";
+    <script>
+        // Initialize Firebase connection check
+        function checkFirebase() {
+            if (typeof db === 'undefined') {
+                document.getElementById('error').textContent = "Firebase not loaded. Please refresh the page.";
+                return false;
             }
-        })
-        .catch(error => {
-            console.error("Firebase error:", error);
-            errorEl.textContent = "Failed to connect to the game. Check your internet.";
-        });
-}
-            
+            return true;
+        }
 
-            // Check if game exists and is active
+        // Join game function
+        function joinGame() {
+            if (!checkFirebase()) return;
+            
+            const gameCode = document.getElementById('gameCode').value.trim();
+            const errorEl = document.getElementById('error');
+            
+            if (!gameCode || gameCode.length !== 4) {
+                errorEl.textContent = "Please enter a valid 4-digit code";
+                return;
+            }
 
-            db.ref('games/' + gameCode).once('value').then(snapshot => {
-                const game = snapshot.val();             
-
-                if (!game || !game.isActive){
-                    document.getElementById('error').textContent = "Game not found or has ended";
-                } else {                   // Save game code to localStorage and redirect
-
-                    localStorage.setItem('currentGame', gameCode);
-                    localStorage.setItem('gameSettings', JSON.stringify({
-                        operations: game.operations,
-                        difficulty: game.difficulty
-                    }));
-                    window.location.href = "game.html";
+            // Check if game exists
+            db.ref('games/' + gameCode).once('value')
+                .then(snapshot => {
+                    const game = snapshot.val();
+                    
+                    if (!game || !game.isActive) {
+                        errorEl.textContent = "Game not found or has ended";
+                    } else {
+                        localStorage.setItem('currentGame', gameCode);
+                        localStorage.setItem('gameSettings', JSON.stringify({
+                            operations: game.operations,
+                            difficulty: game.difficulty
+                        }));
+                        window.location.href = "game.html";
+                    }
+                })
+                .catch(error => {
+                    console.error("Firebase error:", error);
+                    errorEl.textContent = "Failed to connect to the game. Check your internet.";
                 });
-        }
-    </script>
+        }
+
+        // Add event listener when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('joinButton').addEventListener('click', joinGame);
+        });
+    </script>
 </body>
 </html>
