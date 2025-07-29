@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Join Math Game</title>
-    <!-- Load Firebase first -->
-   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <!-- Load Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="firebase.js"></script>
     
     <style>
         body { 
@@ -61,7 +60,23 @@
     <p id="error"></p>
 
     <script>
-            // Initialize Firebase connection check
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
+            authDomain: "mathgame-d8afe.firebaseapp.com",
+            databaseURL: "https://mathgame-d8afe-default-rtdb.firebaseio.com",
+            projectId: "mathgame-d8afe",
+            storageBucket: "mathgame-d8afe.appspot.com",
+            messagingSenderId: "339478386785",
+            appId: "1:339478386785:web:fe25feb5bcb940c8983220",
+            measurementId: "G-DPJ79JZFQ1"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Wait for Firebase to load
         function waitForFirebase(callback) {
             if (window.db) {
                 callback();
@@ -71,37 +86,41 @@
         }
 
         // Join game function
-       function joinGame() {
-    const gameCode = document.getElementById('gameCode').value.trim();
-    const errorEl = document.getElementById('error');
-    
-    if (!gameCode || gameCode.length !== 4 || !/^\d{4}$/.test(gameCode)) {
-        errorEl.textContent = "Please enter a valid 4-digit code";
-        return;  // Stops execution if validation fails
-    }
+        function joinGame() {
+            const gameCode = document.getElementById('gameCode').value.trim();
+            const errorEl = document.getElementById('error');
+            
+            if (!gameCode || gameCode.length !== 4 || !/^\d{4}$/.test(gameCode)) {
+                errorEl.textContent = "Please enter a valid 4-digit code";
+                return;
+            }
 
-    waitForFirebase(() => {
-        db.ref('games/' + gameCode).once('value')
-            .then(snapshot => {
-                const game = snapshot.val();
-                
-                if (!game || !game.isActive) {
-                    errorEl.textContent = "Game not found or has ended";
-                } else {
-                    localStorage.setItem('currentGame', gameCode);
-                    localStorage.setItem('gameSettings', JSON.stringify({
-                        operations: game.operations,
-                        difficulty: game.difficulty
-                    }));
-                    window.location.href = "game.html";  // 🔴 Redirection should happen here
-                }
-            })
-            .catch(error => {
-                console.error("Firebase error:", error);
-                errorEl.textContent = "Failed to connect to the game. Check your internet.";
+            waitForFirebase(() => {
+                db.ref('games/' + gameCode).once('value')
+                    .then(snapshot => {
+                        const game = snapshot.val();
+                        console.log("Game data:", game);  // Debug
+                        
+                        if (!game || !game.isActive) {
+                            errorEl.textContent = "Game not found or has ended";
+                        } else {
+                            localStorage.setItem('currentGame', gameCode);
+                            localStorage.setItem('gameSettings', JSON.stringify({
+                                operations: game.operations,
+                                difficulty: game.difficulty
+                            }));
+                            window.location.href = "game.html";  // Redirect
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Firebase error:", error);
+                        errorEl.textContent = "Failed to connect. Check your internet.";
+                    });
             });
-    });
-}
+        }
+
+        // Attach event listener
+        document.getElementById('joinButton').addEventListener('click', joinGame);
     </script>
 </body>
 </html>
