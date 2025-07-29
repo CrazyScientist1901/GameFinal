@@ -1,33 +1,19 @@
-importScripts("https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js");
-importScripts("https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js");
-// Initialize Firebase
+/ Initialize Firebase
 
 const firebaseConfig = {
-
     apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
-
     authDomain: "mathgame-d8afe.firebaseapp.com",
-
     databaseURL: "https://mathgame-d8afe-default-rtdb.firebaseio.com",
-
     projectId: "mathgame-d8afe",
-
     storageBucket: "mathgame-d8afe.appspot.com",
-
     messagingSenderId: "339478386785",
-
     appId: "1:339478386785:web:fe25feb5bcb940c8983220",
-
     measurementId: "G-DPJ79JZFQ1"
-
 };
 
 
-// Make it globally available (instead of export)
 
+// Initialize Firebase
 
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-window.db = db; 
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
