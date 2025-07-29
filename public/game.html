@@ -310,12 +310,23 @@ function generatePuzzle() {
 
     const lowerBound = Math.pow(10, difficulty - 1);
     const upperBound = Math.pow(10, difficulty) - 1;
-    const resultBound = upperBound;
-    const multiplicationSafeUpper = Math.floor(Math.sqrt(resultBound));
+    let resultBound = upperBound;
+    
+    // For multiplication, reduce the maximum operand size to prevent huge results
+    let multiplicationOperandBound = upperBound;
+    if (currentOperator === '*') {
+        // For multiplication, limit operands to half the digits to keep results manageable
+        multiplicationOperandBound = Math.pow(10, Math.ceil(difficulty/2)) - 1;
+        resultBound = upperBound * upperBound; // Allow larger results for multiplication
+    }
 
     let valid = false;
+    let attempts = 0;
+    const maxAttempts = 100;
 
-    while (!valid) {
+    while (!valid && attempts < maxAttempts) {
+        attempts++;
+        
         switch (currentOperator) {
             case '+':
                 correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
@@ -338,12 +349,12 @@ function generatePuzzle() {
                 break;
 
             case '*':
-                correctNum1 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-                correctNum2 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                correctNum1 = getRandomNumberInRange(lowerBound, multiplicationOperandBound);
+                correctNum2 = getRandomNumberInRange(lowerBound, multiplicationOperandBound);
                 result1 = correctNum1 * correctNum2;
 
-                correctNum3 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-                correctNum4 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                correctNum3 = getRandomNumberInRange(lowerBound, multiplicationOperandBound);
+                correctNum4 = getRandomNumberInRange(lowerBound, multiplicationOperandBound);
                 result2 = correctNum3 * correctNum4;
                 break;
 
@@ -378,12 +389,25 @@ function generatePuzzle() {
                 break;
         }
 
+        // Check if all results are within bounds and valid
         if (
-            result1 <= resultBound && result2 <= resultBound &&
-            result3 <= resultBound && result4 <= resultBound
+            result1 <= resultBound && 
+            result2 <= resultBound &&
+            result3 <= resultBound && 
+            result4 <= resultBound &&
+            !isNaN(result1) && !isNaN(result2) && 
+            !isNaN(result3) && !isNaN(result4)
         ) {
             valid = true;
         }
+    }
+
+    if (!valid) {
+        // If we couldn't find valid numbers after max attempts, fall back to addition
+        currentOperator = '+';
+        document.getElementById("operator").textContent = '+';
+        generatePuzzle(); // Recursively try again with addition
+        return;
     }
 
     document.getElementById("result1").value = result1;
@@ -391,7 +415,6 @@ function generatePuzzle() {
     document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
     document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
 }
-
 
               
            
