@@ -422,7 +422,7 @@ function generatePuzzle() {
 
               
            
-        function checkResults() {
+       function checkResults() {
     const num1 = parseFloat(document.getElementById("num1").value);
     const num2 = parseFloat(document.getElementById("num2").value);
     const num3 = parseFloat(document.getElementById("num3").value);
@@ -435,52 +435,46 @@ function generatePuzzle() {
         return;
     }
     
-    // First check if the user entered the correct numbers
-    const numbersCorrect = (num1 === correctNum1) && 
-                          (num2 === correctNum2) && 
-                          (num3 === correctNum3) && 
-                          (num4 === correctNum4);
-    
-    // Then verify the operations produce the correct results
-    let operationsCorrect = true;
+    // First check if the user's numbers produce all the correct results
+    let resultsCorrect = true;
     switch(currentOperator) {
         case '+':
-            operationsCorrect = (num1 + num2 === result1) && 
-                               (num3 + num4 === result2) &&
-                               (num1 + num3 === result3) &&
-                               (num2 + num4 === result4);
+            resultsCorrect = (num1 + num2 === result1) && 
+                           (num3 + num4 === result2) &&
+                           (num1 + num3 === result3) &&
+                           (num2 + num4 === result4);
             break;
         case '-':
-            operationsCorrect = (num1 - num2 === result1) && 
-                               (num3 - num4 === result2) &&
-                               (num1 - num3 === result3) &&
-                               (num2 - num4 === result4);
+            resultsCorrect = (num1 - num2 === result1) && 
+                           (num3 - num4 === result2) &&
+                           (num1 - num3 === result3) &&
+                           (num2 - num4 === result4);
             break;
         case 'X':
-            operationsCorrect = (num1 * num2 === result1) && 
-                               (num3 * num4 === result2) &&
-                               (num1 * num3 === result3) &&
-                               (num2 * num4 === result4);
+            resultsCorrect = (num1 * num2 === result1) && 
+                           (num3 * num4 === result2) &&
+                           (num1 * num3 === result3) &&
+                           (num2 * num4 === result4);
             break;
         case '÷':
             if (num2 === 0 || num4 === 0 || num3 === 0) {
-                operationsCorrect = false;
+                resultsCorrect = false;
                 break;
             }
-            operationsCorrect = (Math.abs(num1 / num2 - result1) < 0.0001) && 
-                               (Math.abs(num3 / num4 - result2) < 0.0001) &&
-                               (Math.abs(num1 / num3 - result3) < 0.0001) &&
-                               (Math.abs(num2 / num4 - result4) < 0.0001);
+            resultsCorrect = (Math.abs(num1 / num2 - result1) < 0.0001) && 
+                           (Math.abs(num3 / num4 - result2) < 0.0001) &&
+                           (Math.abs(num1 / num3 - result3) < 0.0001) &&
+                           (Math.abs(num2 / num4 - result4) < 0.0001);
             break;
     }
     
-    if (numbersCorrect && operationsCorrect) {
+    if (resultsCorrect) {
         score++;
         document.getElementById("score").textContent = "Score: " + score;
         answerBox.innerText = "Correct!";
         answerBox.className = "correct";
     } else {
-        answerBox.innerHTML = `Incorrect!<br>Correct answers:<br>
+        answerBox.innerHTML = `Incorrect!<br>One possible solution:<br>
             num1 = ${correctNum1}<br>
             num2 = ${correctNum2}<br>
             num3 = ${correctNum3}<br>
