@@ -1,56 +1,241 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Join Math Game</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="firebase.js"></script>
+    <!-- Import firebase.js as a module -->
+    <script type="module" src="firebase.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; }
-        input { padding: 10px; width: 100%; margin-bottom: 10px; }
-        button { 
-            padding: 10px 15px; 
-            background: #4CAF50; 
-            color: white; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; 
+        body {
+            font-family: 'Inter', sans-serif; /* Using Inter as per instructions */
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Use min-height to ensure full viewport height */
+            overflow: auto; /* Allow scrolling if content exceeds viewport */
         }
-        #error { color: red; }
+        .container {
+            max-width: 450px; /* Slightly increased max-width for better spacing */
+            width: 95%; /* Responsive width */
+            background-color: #ffffff;
+            padding: 20px; /* Increased padding */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* Stronger shadow */
+            border-radius: 12px; /* More rounded corners */
+            text-align: center;
+            margin: 20px auto; /* Add margin for vertical spacing */
+        }
+        h1 {
+            color: #4A90E2;
+            font-size: 28px; /* Larger font size */
+            margin-bottom: 15px;
+            font-weight: 700; /* Bold title */
+        }
+        p {
+            color: #555; /* Slightly darker text for readability */
+            font-size: 15px;
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            width: calc(100% - 20px); /* Account for padding */
+            padding: 12px; /* Larger padding */
+            margin: 8px 0; /* Increased margin */
+            font-size: 16px;
+            border: 1px solid #ccc; /* Lighter border */
+            border-radius: 8px; /* Rounded input fields */
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input[type="text"]:focus {
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2); /* Focus ring effect */
+            outline: none;
+        }
+        button {
+            background-color: #4CAF50; /* Green color for join button */
+            color: white;
+            padding: 12px 25px; /* More padding for buttons */
+            border: none;
+            border-radius: 8px; /* Rounded buttons */
+            cursor: pointer;
+            font-size: 17px; /* Larger font size */
+            margin-top: 20px; /* More margin */
+            width: calc(100% - 20px);
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Button shadow */
+        }
+        button:hover {
+            background-color: #45a049; /* Darker green on hover */
+            transform: translateY(-2px); /* Slight lift effect */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        /* Custom Modal Styles (copied from math-game-app.html for consistency) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 25px;
+            border: 1px solid #888;
+            border-radius: 10px;
+            width: 80%; /* Could be more responsive */
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            color: #4A90E2;
+        }
+        .modal-content p {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .modal-content button {
+            background-color: #4A90E2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: auto; /* Override full width for modal button */
+        }
+        .modal-content button:hover {
+            background-color: #357ABD;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                width: 98%;
+            }
+            h1 {
+                font-size: 26px;
+            }
+            input[type="text"], button {
+                width: 100%; /* Full width for smaller screens */
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>Join Math Game</h1>
+    <div class="container">
+        <h1>Join Math Game</h1>
+        
+        <p>Enter the game code provided by your teacher:</p>
+        <input type="text" id="gameCode" placeholder="Game code" maxlength="10"> <!-- Increased maxlength for flexibility -->
+        <button onclick="joinGame()">Join Game</button>
+    </div>
+
+    <!-- Custom Message Box Modal -->
+    <div id="messageBox" class="modal">
+        <div class="modal-content">
+            <h3 id="messageTitle"></h3>
+            <p id="messageText"></p>
+            <button onclick="hideMessage()">OK</button>
+        </div>
+    </div>
     
-    <p>Enter the game code provided by your teacher:</p>
-    <input type="text" id="gameCode" placeholder="4-digit game code" maxlength="4">
-    <button onclick="joinGame()">Join Game</button>
-    <p id="error"></p>
-    
-    <script>
-        function joinGame() {
-            const gameCode = document.getElementById('gameCode').value;
-            if (!gameCode || gameCode.length !== 4) {
-                document.getElementById('error').textContent = "Please enter a valid 4-digit code";
+    <script type="module">
+        // Import Firebase objects and helper functions from firebase.js
+        import { db, doc, getDoc, appId, getIsAuthReady } from './firebase.js';
+
+        // --- Custom Message Box Functions (copied from math-game-app.html for consistency) ---
+        function showMessage(title, message, type = "info") {
+            const messageBox = document.getElementById('messageBox');
+            const messageTitle = document.getElementById('messageTitle');
+            const messageText = document.getElementById('messageText');
+
+            messageTitle.textContent = title;
+            messageText.textContent = message;
+            
+            if (type === "error") {
+                messageTitle.style.color = "#cc0000";
+            } else if (type === "success") {
+                messageTitle.style.color = "#1a7a1a";
+            } else {
+                messageTitle.style.color = "#4A90E2";
+            }
+
+            messageBox.style.display = 'flex'; // Use flex to center content
+        }
+
+        function hideMessage() {
+            document.getElementById('messageBox').style.display = 'none';
+        }
+
+        // --- Join Game Logic ---
+        async function joinGame() {
+            // Wait for Firebase authentication to be ready
+            if (!getIsAuthReady()) {
+                showMessage("Loading", "Firebase is still initializing. Please wait a moment and try again.", "info");
+                return;
+            }
+
+            const gameCode = document.getElementById('gameCode').value.trim();
+            if (!gameCode) {
+                showMessage("Invalid Input", "Please enter a game code.", "error");
                 return;
             }
             
-            // Check if game exists and is active
-            db.ref('games/' + gameCode).once('value').then(snapshot => {
-                const game = snapshot.val();
+            // Reference to the game settings document in Firestore
+            const gameSettingsRef = doc(db, `artifacts/${appId}/public/data/mathGames`, gameCode);
+
+            try {
+                const docSnapshot = await getDoc(gameSettingsRef);
                 
-                if (!game || !game.isActive) {
-                    document.getElementById('error').textContent = "Game not found or has ended";
-                } else {
-                    // Save game code to localStorage and redirect
-                    localStorage.setItem('currentGame', gameCode);
-                    localStorage.setItem('gameSettings', JSON.stringify({
-                        operations: game.operations,
-                        difficulty: game.difficulty
-                    }));
-                    window.location.href = "game.html";
+                if (!docSnapshot.exists()) {
+                    showMessage("Game Not Found", `Game code "${gameCode}" does not exist. Please check the code and try again.`, "error");
+                    return;
                 }
-            });
+
+                const game = docSnapshot.data();
+                
+                if (!game.isActive) {
+                    showMessage("Game Ended", "This game session has ended. Please ask your teacher for a new code.", "info");
+                    return;
+                }
+
+                // Game exists and is active, save game code and settings to localStorage
+                localStorage.setItem('currentGameCode', gameCode); // Use 'currentGameCode' for consistency with math-game-app.html
+                localStorage.setItem('gameSettings', JSON.stringify({
+                    operations: game.operations,
+                    difficulty: game.difficulty
+                }));
+                
+                showMessage("Success!", "Joining game. Redirecting...", "success");
+                // Redirect to the main game page
+                window.location.href = "math-game-app.html"; // Updated to match the actual game file name
+            } catch (error) {
+                console.error("Error joining game:", error);
+                showMessage("Error", "An error occurred while trying to join the game. Please try again.", "error");
+            }
         }
     </script>
 </body>
