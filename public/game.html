@@ -280,140 +280,78 @@
 
                     
             // Generate numbers based on difficulty
-function generatePuzzle() {
-    if (gameEnded) return;
+function generatePuzzle(difficulty, operator) {
+    let minResult = Math.pow(10, difficulty - 1);
+    let maxResult = Math.pow(10, difficulty) - 1;
+    let num1, num2, result;
 
-    if (round > maxRounds) {
-        gameEnded = true;
-        savePlayerData();
-        setTimeout(() => {
-            alert("Game Over! Your final score is: " + score);
-            document.getElementById("game").style.display = "none";
-            document.querySelector("button[onclick='startGame()']").disabled = false;
-        }, 500);
-        return;
+    switch (operator) {
+        case '+':
+            result = getRandomInt(minResult, maxResult);
+            num1 = getRandomInt(1, result - 1);
+            num2 = result - num1;
+            break;
+
+        case '-':
+            result = getRandomInt(minResult, maxResult);
+            num2 = getRandomInt(1, 100);
+            num1 = result + num2;
+            break;
+
+        case '*':
+            let factors = getFactorPairsInRange(minResult, maxResult);
+            if (factors.length === 0) {
+                console.error("No valid multiplication pairs for this difficulty.");
+                return null;
+            }
+            [num1, num2] = factors[Math.floor(Math.random() * factors.length)];
+            result = num1 * num2;
+            break;
+
+        case '/':
+            let dividends = getDivisiblePairsInRange(minResult, maxResult);
+            if (dividends.length === 0) {
+                console.error("No valid division pairs for this difficulty.");
+                return null;
+            }
+            [num1, num2] = dividends[Math.floor(Math.random() * dividends.length)];
+            result = num1 / num2;
+            break;
     }
 
-    document.getElementById("round").textContent = round;
-    document.getElementById("generateBtn").disabled = true;
-    document.getElementById("checkBtn").disabled = false;
+    return { num1, num2, operator, result };
+}
 
-    currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
-    if (currentOperator === 'X') currentOperator = '*';
-    document.getElementById("operator").textContent = currentOperator === '*' ? 'X' : currentOperator;
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-    // Clear previous inputs but keep results
-    ['num1', 'num2', 'num3', 'num4'].forEach(id => {
-        document.getElementById(id).value = '';
-    });
-    document.getElementById("answerBox").textContent = '';
-    document.getElementById("answerBox").className = '';
-
-    const lowerBound = Math.pow(10, difficulty - 1);
-    const upperBound = Math.pow(10, difficulty) - 1;
-
-    let valid = false;
-    let attempts = 0;
-    const maxAttempts = 100;
-
-    while (!valid && attempts < maxAttempts) {
-        attempts++;
-        
-        switch (currentOperator) {
-            case '+':
-                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-                result1 = correctNum1 + correctNum2;
-
-                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-                result2 = correctNum3 + correctNum4;
-                break;
-
-            case '-':
-                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum2 = getRandomNumberInRange(lowerBound, correctNum1);
-                result1 = correctNum1 - correctNum2;
-
-                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum4 = getRandomNumberInRange(lowerBound, correctNum3);
-                result2 = correctNum3 - correctNum4;
-                break;
-
-            case '*':
-    // For multiplication, we need to ensure the product stays within bounds
-    do {
-        correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-        correctNum2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum1));
-        result1 = correctNum1 * correctNum2;
-    } while (result1 > upperBound || result1 < lowerBound);
-
-    do {
-        correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-        correctNum4 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum3));
-        result2 = correctNum3 * correctNum4;
-    } while (result2 > upperBound || result2 < lowerBound);
-    break;
-
-            case '/':
-                correctNum2 = getRandomNumberInRange(1, upperBound);
-                result1 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum1 = result1 * correctNum2;
-
-                correctNum4 = getRandomNumberInRange(1, upperBound);
-                result2 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum3 = result2 * correctNum4;
-                break;
-        }
-
-        // Calculate final results
-        switch (currentOperator) {
-            case '+':
-                result3 = correctNum1 + correctNum3;
-                result4 = correctNum2 + correctNum4;
-                break;
-            case '-':
-                result3 = correctNum1 - correctNum3;
-                result4 = correctNum2 - correctNum4;
-                break;
-            case '*':
-                result3 = correctNum1 * correctNum3;
-                result4 = correctNum2 * correctNum4;
-                break;
-            case '/':
-                result3 = correctNum3 !== 0 ? correctNum1 / correctNum3 : 0;
-                result4 = correctNum4 !== 0 ? correctNum2 / correctNum4 : 0;
-                break;
-        }
-
-        // Validate all results stay within bounds
-        valid = true;
-        const results = [result1, result2, result3, result4];
-        for (const result of results) {
-            if (result > upperBound || result < lowerBound || isNaN(result)) {
-                valid = false;
-                break;
+function getFactorPairsInRange(minResult, maxResult) {
+    let pairs = [];
+    for (let i = 1; i <= Math.sqrt(maxResult); i++) {
+        for (let j = i; j <= maxResult / i; j++) {
+            let product = i * j;
+            if (product >= minResult && product <= maxResult) {
+                pairs.push([i, j]);
             }
         }
     }
-
-    // Display the results in the readonly fields
-    const result1El = document.getElementById("result1");
-    const result2El = document.getElementById("result2"); 
-    const result3El = document.getElementById("result3");
-    const result4El = document.getElementById("result4");
-
-    if (result1El) result1El.value = Number.isInteger(result1) ? result1 : result1.toFixed(2);
-    if (result2El) result2El.value = Number.isInteger(result2) ? result2 : result2.toFixed(2);
-    if (result3El) result3El.value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
-    if (result4El) result4El.value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
-
-    console.log("Generated numbers:", {
-        num1: correctNum1, num2: correctNum2, result1: result1,
-        num3: correctNum3, num4: correctNum4, result2: result2,
-        result3: result3, result4: result4, operator: currentOperator
-    });
+    return pairs;
 }
+
+function getDivisiblePairsInRange(minResult, maxResult) {
+    let pairs = [];
+    for (let divisor = 1; divisor <= maxResult; divisor++) {
+        for (let quotient = minResult; quotient <= maxResult; quotient++) {
+            let dividend = divisor * quotient;
+            if (dividend <= maxResult) {
+                pairs.push([dividend, divisor]);
+            }
+        }
+    }
+    return pairs;
+}
+
         
         function checkResults() {
             const num1 = parseFloat(document.getElementById("num1").value);
