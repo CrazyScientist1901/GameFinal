@@ -23,10 +23,11 @@ const firebaseConfig = {
 };
 
 
+// Make it globally available (instead of export)
 
-// Initialize Firebase
+
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-export { db };
+window.db = db; 
