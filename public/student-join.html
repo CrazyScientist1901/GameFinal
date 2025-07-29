@@ -52,9 +52,8 @@
         }
     </style>
 </head>
-<body>
-    <h1>Join Math Game</h1>
-    <p>Enter the game code provided by your teacher:</p>
+    <body>
+<h1>Join Math Game</h1>
     <input type="text" id="gameCode" placeholder="4-digit game code" maxlength="4">
     <button id="joinButton">Join Game</button>
     <p id="error"></p>
@@ -76,25 +75,25 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Wait for Firebase to load
-        function waitForFirebase(callback) {
-            if (window.db) {
-                callback();
-            } else {
-                setTimeout(() => waitForFirebase(callback), 100);
-            }
+        // Debugging check
+        console.log("Firebase initialized:", firebase.apps.length > 0);
+
+        function joinGame() {
+            // TEMPORARY HARDCODED TEST - REMOVE LATER
+            localStorage.setItem('currentGame', '1234');
+            localStorage.setItem('gameSettings', JSON.stringify({
+                operations: ['+', '-'],
+                difficulty: '2'
+            }));
+            
+            // Try these one at a time to see what works:
+            // window.location.href = "game.html";          // Same directory
+            // window.location.href = "/game.html";         // Root directory
+            window.location.href = "/public/game.html";    // Full path
+            // window.location.href = "../public/game.html"; // Relative path
         }
 
-        // Join game function
-        function joinGame() {
-    // Hardcoded test (temporarily remove Firebase checks)
-    localStorage.setItem('currentGame', '1234');
-    localStorage.setItem('gameSettings', JSON.stringify({
-        operations: ['+', '-'],
-        difficulty: '2'
-    }));
-    window.location.href = "/puzzle.html";  // Test redirect
-}
+        document.getElementById('joinButton').addEventListener('click', joinGame);
     </script>
 </body>
 </html>
