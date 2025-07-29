@@ -310,22 +310,12 @@ function generatePuzzle() {
 
     const lowerBound = Math.pow(10, difficulty - 1);
     const upperBound = Math.pow(10, difficulty) - 1;
-    let resultBound = upperBound;
-    
-    // For multiplication, reduce the maximum operand size to prevent huge results
-    let multiplicationOperandBound = upperBound;
-    if (currentOperator === '*') {
-        multiplicationOperandBound = Math.pow(10, Math.ceil(difficulty/2)) - 1;
-        resultBound = upperBound * upperBound;
-    }
+    const resultBound = upperBound;
+    const multiplicationSafeUpper = Math.floor(Math.sqrt(resultBound));
 
     let valid = false;
-    let attempts = 0;
-    const maxAttempts = 100;
 
-    while (!valid && attempts < maxAttempts) {
-        attempts++;
-        
+    while (!valid) {
         switch (currentOperator) {
             case '+':
                 correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
@@ -348,46 +338,27 @@ function generatePuzzle() {
                 break;
 
             case '*':
-                const maxMultiplier = difficulty === 2 ? 9 : Math.pow(10, difficulty - 1) - 1;
-                correctNum1 = getRandomNumberInRange(1, maxMultiplier);
-                correctNum2 = getRandomNumberInRange(1, maxMultiplier);
+                correctNum1 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                correctNum2 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
                 result1 = correctNum1 * correctNum2;
 
-                correctNum3 = getRandomNumberInRange(1, maxMultiplier);
-                correctNum4 = getRandomNumberInRange(1, maxMultiplier);
+                correctNum3 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                correctNum4 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
                 result2 = correctNum3 * correctNum4;
                 break;
 
+            case '÷':
             case '/':
-    // Generate denominators first (can't be zero)
-    correctNum2 = getRandomNumberInRange(1, upperBound);
-    correctNum4 = getRandomNumberInRange(1, upperBound);
-    
-    // Generate whole number results
-    result1 = getRandomNumberInRange(lowerBound, Math.floor(upperBound/correctNum2));
-    result2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound/correctNum4));
-    
-    // Calculate numerators
-    correctNum1 = result1 * correctNum2;
-    correctNum3 = result2 * correctNum4;
-    
-    // Ensure cross operations produce whole numbers
-    // Find greatest common divisor for the pairs
-    const gcd1 = gcd(correctNum1, correctNum3);
-    const gcd2 = gcd(correctNum2, correctNum4);
-    
-    // Simplify the numbers while keeping them as whole numbers
-    correctNum1 /= gcd1;
-    correctNum3 /= gcd1;
-    correctNum2 /= gcd2;
-    correctNum4 /= gcd2;
-    
-    // Recalculate results after simplification
-    result1 = correctNum1 / correctNum2;
-    result2 = correctNum3 / correctNum4;
-    result3 = correctNum1 / correctNum3;
-    result4 = correctNum2 / correctNum4;
-    break;
+                correctNum2 = getRandomNumberInRange(1, upperBound);
+                result1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum1 = result1 * correctNum2;
+
+                correctNum4 = getRandomNumberInRange(1, upperBound);
+                result2 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum3 = result2 * correctNum4;
+                break;
+        }
+        }
 
         // Common Result Calculations
         switch (currentOperator) {
@@ -403,55 +374,18 @@ function generatePuzzle() {
                 result3 = correctNum1 * correctNum3;
                 result4 = correctNum2 * correctNum4;
                 break;
+            case '÷':
             case '/':
-                result3 = correctNum1 / correctNum3;
-                result4 = correctNum2 / correctNum4;
+                result3 = correctNum3 !== 0 ? correctNum1 / correctNum3 : 0;
+                result4 = correctNum4 !== 0 ? correctNum2 / correctNum4 : 0;
                 break;
         }
 
-        // Check if all results are within bounds and valid
         if (
-            result1 <= resultBound && 
-            result2 <= resultBound &&
-            result3 <= resultBound && 
-            result4 <= resultBound &&
-            !isNaN(result1) && !isNaN(result2) && 
-            !isNaN(result3) && !isNaN(result4) &&
-            (currentOperator !== '/' || (Number.isInteger(result3) && Number.isInteger(result4)))
+            result1 <= resultBound && result2 <= resultBound &&
+            result3 <= resultBound && result4 <= resultBound
         ) {
             valid = true;
-        }
-    }
-
-    if (!valid) {
-        // Instead of recursion, just force addition
-        currentOperator = '+';
-        document.getElementById("operator").textContent = '+';
-        // Reset and try again with addition
-        valid = false;
-        attempts = 0;
-        
-        while (!valid && attempts < maxAttempts) {
-            attempts++;
-            correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-            correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-            result1 = correctNum1 + correctNum2;
-
-            correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-            correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-            result2 = correctNum3 + correctNum4;
-
-            result3 = correctNum1 + correctNum3;
-            result4 = correctNum2 + correctNum4;
-
-            if (
-                result1 <= resultBound && 
-                result2 <= resultBound &&
-                result3 <= resultBound && 
-                result4 <= resultBound
-            ) {
-                valid = true;
-            }
         }
     }
 
@@ -460,106 +394,73 @@ function generatePuzzle() {
     document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
     document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
 }
-function gcd(a, b) {
-    a = Math.abs(a);
-    b = Math.abs(b);
-    while (b) {
-        const temp = b;
-        b = a % b;
-        a = temp;
-    }
-    return a;
-}
+
+
               
            
-function checkResults() {
-    const num1 = parseFloat(document.getElementById("num1").value);
-    const num2 = parseFloat(document.getElementById("num2").value);
-    const num3 = parseFloat(document.getElementById("num3").value);
-    const num4 = parseFloat(document.getElementById("num4").value);
-    const answerBox = document.getElementById("answerBox");
-    
-    if (isNaN(num1) || isNaN(num2) || isNaN(num3) || isNaN(num4)) {
-        answerBox.innerText = "Please fill in all numbers!";
-        answerBox.className = "wrong";
-        return;
-    }
-    
-    // Calculate what the results should be based on user's numbers
-    let userResult1, userResult2, userResult3, userResult4;
-    let operationsValid = true;
-    
-    switch(currentOperator) {
-        case '+':
-            userResult1 = num1 + num2;
-            userResult2 = num3 + num4;
-            userResult3 = num1 + num3;
-            userResult4 = num2 + num4;
-            break;
-        case '-':
-            userResult1 = num1 - num2;
-            userResult2 = num3 - num4;
-            userResult3 = num1 - num3;
-            userResult4 = num2 - num4;
-            break;
-        case 'X':
-            userResult1 = num1 * num2;
-            userResult2 = num3 * num4;
-            userResult3 = num1 * num3;
-            userResult4 = num2 * num4;
-            break;
-        case '÷':
-    if (num2 === 0 || num4 === 0 || num3 === 0) {
-        answerBox.innerText = "Cannot divide by zero!";
-        answerBox.className = "wrong";
-        return;
-    }
-    userResult1 = num1 / num2;
-    userResult2 = num3 / num4;
-    userResult3 = num1 / num3;
-    userResult4 = num2 / num4;
-    break;
-    
-    // Compare calculated results with expected results
-    const resultsMatch = operationsValid && (
-        Math.abs(userResult1 - result1) < 0.0001 &&
-        Math.abs(userResult2 - result2) < 0.0001 &&
-        Math.abs(userResult3 - result3) < 0.0001 &&
-        Math.abs(userResult4 - result4) < 0.0001
-    );
-    
-    if (resultsMatch) {
-        score++;
-        document.getElementById("score").textContent = "Score: " + score;
-        answerBox.innerText = "Correct!";
-        answerBox.className = "correct";
-    } else {
-        // Check if the user happened to find an alternative correct solution
-        const isAlternativeSolution = (
-            (num1 === correctNum1 && num2 === correctNum2 && num3 === correctNum3 && num4 === correctNum4) ||
-            (num1 === correctNum3 && num2 === correctNum4 && num3 === correctNum1 && num4 === correctNum2)
-        );
-        
-        if (isAlternativeSolution) {
-            score++;
-            document.getElementById("score").textContent = "Score: " + score;
-            answerBox.innerText = "Correct!";
-            answerBox.className = "correct";
-        } else {
-            answerBox.innerHTML = `Incorrect!<br>Your numbers don't produce all the required results.<br>
-                One possible solution:<br>
-                ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum2} = ${result1}<br>
-                ${correctNum3} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result2}<br>;
-                ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum3} = ${result3}<br>
-                ${correctNum2} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result4}`;
-            answerBox.className = "wrong";
+        function checkResults() {
+            const num1 = parseFloat(document.getElementById("num1").value);
+            const num2 = parseFloat(document.getElementById("num2").value);
+            const num3 = parseFloat(document.getElementById("num3").value);
+            const num4 = parseFloat(document.getElementById("num4").value);
+            const answerBox = document.getElementById("answerBox");
+            
+            if (isNaN(num1) || isNaN(num2) || isNaN(num3) || isNaN(num4)) {
+                answerBox.innerText = "Please fill in all numbers!";
+                answerBox.className = "wrong";
+                return;
+            }
+            
+            let allCorrect = true;
+            switch(currentOperator) {
+                case '+':
+                    allCorrect = (num1 + num2 === result1) && 
+                                 (num3 + num4 === result2) &&
+                                 (num1 + num3 === result3) &&
+                                 (num2 + num4 === result4);
+                    break;
+                case '-':
+                    allCorrect = (num1 - num2 === result1) && 
+                                 (num3 - num4 === result2) &&
+                                 (num1 - num3 === result3) &&
+                                 (num2 - num4 === result4);
+                    break;
+                case 'X':
+                    allCorrect = (num1 * num2 === result1) && 
+                                 (num3 * num4 === result2) &&
+                                 (num1 * num3 === result3) &&
+                                 (num2 * num4 === result4);
+                    break;
+                 case '÷':
+                    if (num2 === 0 || num4 === 0 || num3 === 0) {
+                        allCorrect = false;
+                        break;
+                    }
+                    allCorrect = (Math.abs(num1 / num2 - result1) < 0.0001) && 
+                                 (Math.abs(num3 / num4 - result2) < 0.0001) &&
+                                 (Math.abs(num1 / num3 - result3) < 0.0001) &&
+                                 (Math.abs(num2 / num4 - result4) < 0.0001);
+                    break;
+            }
+            
+            if (allCorrect) {
+                score++;
+                document.getElementById("score").textContent = "Score: " + score;
+                answerBox.innerText = "Correct!";
+                answerBox.className = "correct";
+            } else {
+                answerBox.innerHTML = `Incorrect!<br>Correct answers:<br>
+                    num1 = ${correctNum1}<br>
+                    num2 = ${correctNum2}<br>
+                    num3 = ${correctNum3}<br>
+                    num4 = ${correctNum4}`;
+                answerBox.className = "wrong";
+            }
+            
+            round++;
+            document.getElementById("checkBtn").disabled = true;
+            document.getElementById("generateBtn").disabled = false;
         }
-    }
-    
-    round++;
-    document.getElementById("checkBtn").disabled = true;
-    document.getElementById("generateBtn").disabled = false;
-}
 
         function savePlayerData() {
             const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
