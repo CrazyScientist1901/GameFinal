@@ -315,9 +315,8 @@ function generatePuzzle() {
     // For multiplication, reduce the maximum operand size to prevent huge results
     let multiplicationOperandBound = upperBound;
     if (currentOperator === '*') {
-        // For multiplication, limit operands to half the digits to keep results manageable
         multiplicationOperandBound = Math.pow(10, Math.ceil(difficulty/2)) - 1;
-        resultBound = upperBound * upperBound; // Allow larger results for multiplication
+        resultBound = upperBound * upperBound;
     }
 
     let valid = false;
@@ -349,18 +348,15 @@ function generatePuzzle() {
                 break;
 
             case '*':
-    // For multiplication, limit both operands to 1-digit numbers when difficulty is 2
-    // This ensures the result won't be too large
-    const maxMultiplier = difficulty === 2 ? 9 : Math.pow(10, difficulty - 1) - 1;
-    
-    correctNum1 = getRandomNumberInRange(1, maxMultiplier);
-    correctNum2 = getRandomNumberInRange(1, maxMultiplier);
-    result1 = correctNum1 * correctNum2;
+                const maxMultiplier = difficulty === 2 ? 9 : Math.pow(10, difficulty - 1) - 1;
+                correctNum1 = getRandomNumberInRange(1, maxMultiplier);
+                correctNum2 = getRandomNumberInRange(1, maxMultiplier);
+                result1 = correctNum1 * correctNum2;
 
-    correctNum3 = getRandomNumberInRange(1, maxMultiplier);
-    correctNum4 = getRandomNumberInRange(1, maxMultiplier);
-    result2 = correctNum3 * correctNum4;
-    break;
+                correctNum3 = getRandomNumberInRange(1, maxMultiplier);
+                correctNum4 = getRandomNumberInRange(1, maxMultiplier);
+                result2 = correctNum3 * correctNum4;
+                break;
 
             case '/':
                 correctNum2 = getRandomNumberInRange(1, upperBound);
@@ -388,11 +384,10 @@ function generatePuzzle() {
                 result4 = correctNum2 * correctNum4;
                 break;
             case '/':
-                result3 = correctNum3 !== 0 ? correctNum1 / correctNum3 : 0;
-                result4 = correctNum4 !== 0 ? correctNum2 / correctNum4 : 0;
+                result3 = correctNum1 / correctNum3;
+                result4 = correctNum2 / correctNum4;
                 break;
         }
-
 
         // Check if all results are within bounds and valid
         if (
@@ -401,18 +396,43 @@ function generatePuzzle() {
             result3 <= resultBound && 
             result4 <= resultBound &&
             !isNaN(result1) && !isNaN(result2) && 
-            !isNaN(result3) && !isNaN(result4)
+            !isNaN(result3) && !isNaN(result4) &&
+            (currentOperator !== '/' || (Number.isInteger(result3) && Number.isInteger(result4)))
         ) {
             valid = true;
         }
     }
 
     if (!valid) {
-        // If we couldn't find valid numbers after max attempts, fall back to addition
+        // Instead of recursion, just force addition
         currentOperator = '+';
         document.getElementById("operator").textContent = '+';
-        generatePuzzle(); // Recursively try again with addition
-        return;
+        // Reset and try again with addition
+        valid = false;
+        attempts = 0;
+        
+        while (!valid && attempts < maxAttempts) {
+            attempts++;
+            correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+            correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
+            result1 = correctNum1 + correctNum2;
+
+            correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+            correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
+            result2 = correctNum3 + correctNum4;
+
+            result3 = correctNum1 + correctNum3;
+            result4 = correctNum2 + correctNum4;
+
+            if (
+                result1 <= resultBound && 
+                result2 <= resultBound &&
+                result3 <= resultBound && 
+                result4 <= resultBound
+            ) {
+                valid = true;
+            }
+        }
     }
 
     document.getElementById("result1").value = result1;
