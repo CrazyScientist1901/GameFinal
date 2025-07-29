@@ -67,13 +67,35 @@
 
     <script>
         function joinGame() {
-            const gameCode = document.getElementById('gameCode').value;
-            if (!gameCode || gameCode.length !== 4) {
-                document.getElementById('error').textContent = "Please enter a valid 4-digit code";
-                return;
+    const gameCode = document.getElementById('gameCode').value;
+    const errorEl = document.getElementById('error');
+    
+    if (!gameCode || gameCode.length !== 4) {
+        errorEl.textContent = "Please enter a valid 4-digit code";
+        return;
+    }
 
-            }
-
+    // Check if game exists
+    db.ref('games/' + gameCode).once('value')
+        .then(snapshot => {
+            const game = snapshot.val();
+            
+            if (!game || !game.isActive) {
+                errorEl.textContent = "Game not found or has ended";
+            } else {
+                localStorage.setItem('currentGame', gameCode);
+                localStorage.setItem('gameSettings', JSON.stringify({
+                    operations: game.operations,
+                    difficulty: game.difficulty
+                }));
+                window.location.href = "game.html";
+            }
+        })
+        .catch(error => {
+            console.error("Firebase error:", error);
+            errorEl.textContent = "Failed to connect to the game. Check your internet.";
+        });
+}
             
 
             // Check if game exists and is active
