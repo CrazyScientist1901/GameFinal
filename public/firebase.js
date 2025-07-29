@@ -15,5 +15,9 @@ const firebaseConfig = {
 
 // Initialize Firebase
 
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+// Make it globally available
+window.db = db;
