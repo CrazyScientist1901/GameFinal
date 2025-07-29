@@ -7,6 +7,7 @@
     <!-- Load Firebase first -->
    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="firebase.js"></script>
     
     <style>
         body { 
@@ -60,20 +61,7 @@
     <p id="error"></p>
 
     <script>
-        const firebaseConfig = {
-    apiKey: "AIzaSyD4mTQJ3pEjkaNrOV5DF7Ixmm-nrnIrkxw",
-    authDomain: "mathgame-d8afe.firebaseapp.com",
-    databaseURL: "https://mathgame-d8afe-default-rtdb.firebaseio.com",
-    projectId: "mathgame-d8afe",
-    storageBucket: "mathgame-d8afe.appspot.com",
-    messagingSenderId: "339478386785",
-    appId: "1:339478386785:web:fe25feb5bcb940c8983220",
-    measurementId: "G-DPJ79JZFQ1"
-};
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // Initialize Firebase connection check
+            // Initialize Firebase connection check
         function waitForFirebase(callback) {
             if (window.db) {
                 callback();
@@ -123,7 +111,7 @@
 
                     }));
 
-                    window.location.href = "game.html";
+                    window.location.href = "/game.html";
 
                 }
 
