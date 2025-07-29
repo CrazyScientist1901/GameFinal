@@ -4,14 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Math Game</title>
-    <!-- Load Firebase first -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="firebase.js"></script> <!-- This defines `db` -->
-<script>
-    // Now you can safely use `db`
-    db.ref('games/' + gameCode).on('value', (snapshot) => { ... });
-</script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="firebase.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -245,18 +240,13 @@
         }
         
         function initGame() {
-    try {
-        const settings = JSON.parse(localStorage.getItem('gameSettings'));
-        gameCode = localStorage.getItem('currentGame');
-        
-        if (!settings || !gameCode) {
-            alert("No game settings found. Please join a game first.");
-            window.location.href = "join.html"; // Redirect to join page
-            return;
-        }
-        
-        // Rest of the code...
-    } 
+            const settings = JSON.parse(localStorage.getItem('gameSettings'));
+            gameCode = localStorage.getItem('currentGame');
+            
+            if (!settings || !gameCode) {
+                alert("No game settings found. Please join a game first.");
+                return;
+            }
             
             allowedOperations = settings.operations;
             difficulty = parseInt(settings.difficulty);
@@ -281,12 +271,7 @@
                     window.location.href = "student-join.html";
                 }
             });
-      catch (error) {
-        console.error("Initialization error:", error);
-        alert("Error loading game. Please try again.");
-        window.location.href = "join.html";
-    }
-}
+        }
         
         function getRandomNumberInRange(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -296,405 +281,206 @@
                     
             // Generate numbers based on difficulty
 function generatePuzzle() {
+    if (gameEnded) return;
 
-    if (gameEnded) return;
+    if (round > maxRounds) {
+        gameEnded = true;
+        savePlayerData();
+        setTimeout(() => {
+            alert("Game Over! Your final score is: " + score);
+            document.getElementById("game").style.display = "none";
+            document.querySelector("button[onclick='startGame()']").disabled = false;
+        }, 500);
+        return;
+    }
 
+    document.getElementById("round").textContent = round;
+    document.getElementById("generateBtn").disabled = true;
+    document.getElementById("checkBtn").disabled = false;
 
+    currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
+    if (currentOperator === 'X') currentOperator = '*';
+    document.getElementById("operator").textContent = currentOperator === '*' ? 'X' : currentOperator;
 
-    if (round > maxRounds) {
-    gameEnded = true;
-    savePlayerData();
-    setTimeout(() => {
-        alert("Game Over! Your final score is: " + score);
-        window.location.href = "join.html"; // Redirect to join page
-    }, 500);
-    return;
+    // Clear previous inputs
+    ['num1', 'num2', 'num3', 'num4'].forEach(id => document.getElementById(id).value = '');
+    ['result1', 'result2', 'result3', 'result4'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById("answerBox").textContent = '';
+    document.getElementById("answerBox").className = '';
+
+    const lowerBound = Math.pow(10, difficulty - 1);
+    const upperBound = Math.pow(10, difficulty) - 1;
+    const resultBound = upperBound;
+    const multiplicationSafeUpper = Math.floor(Math.sqrt(resultBound));
+
+    let valid = false;
+
+    while (!valid) {
+        switch (currentOperator) {
+            case '+':
+                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
+                result1 = correctNum1 + correctNum2;
+
+                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
+                result2 = correctNum3 + correctNum4;
+                break;
+
+            case '-':
+                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum2 = getRandomNumberInRange(lowerBound, correctNum1);
+                result1 = correctNum1 - correctNum2;
+
+                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum4 = getRandomNumberInRange(lowerBound, correctNum3);
+                result2 = correctNum3 - correctNum4;
+                break;
+
+            case '*':
+                correctNum1 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                correctNum2 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                result1 = correctNum1 * correctNum2;
+
+                correctNum3 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                correctNum4 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
+                result2 = correctNum3 * correctNum4;
+                break;
+
+            case '/':
+                correctNum2 = getRandomNumberInRange(1, upperBound);
+                result1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum1 = result1 * correctNum2;
+
+                correctNum4 = getRandomNumberInRange(1, upperBound);
+                result2 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum3 = result2 * correctNum4;
+                break;
+        }
+
+        // Common Result Calculations
+        switch (currentOperator) {
+            case '+':
+                result3 = correctNum1 + correctNum3;
+                result4 = correctNum2 + correctNum4;
+                break;
+            case '-':
+                result3 = correctNum1 - correctNum3;
+                result4 = correctNum2 - correctNum4;
+                break;
+            case '*':
+                result3 = correctNum1 * correctNum3;
+                result4 = correctNum2 * correctNum4;
+                break;
+            case '/':
+                result3 = correctNum3 !== 0 ? correctNum1 / correctNum3 : 0;
+                result4 = correctNum4 !== 0 ? correctNum2 / correctNum4 : 0;
+                break;
+        }
+
+        if (
+            result1 <= resultBound && result2 <= resultBound &&
+            result3 <= resultBound && result4 <= resultBound
+        ) {
+            valid = true;
+        }
+    }
+
+    document.getElementById("result1").value = result1;
+    document.getElementById("result2").value = result2;
+    document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
+    document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
 }
 
 
-
-    document.getElementById("round").textContent = round;
-
-    document.getElementById("generateBtn").disabled = true;
-
-    document.getElementById("checkBtn").disabled = false;
-
-
-
-    currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
-
-    if (currentOperator === 'X') currentOperator = '*';
-
-    document.getElementById("operator").textContent = currentOperator === '*' ? 'X' : currentOperator;
-
-
-
-    // Clear previous inputs
-
-    ['num1', 'num2', 'num3', 'num4'].forEach(id => document.getElementById(id).value = '');
-
-    ['result1', 'result2', 'result3', 'result4'].forEach(id => document.getElementById(id).value = '');
-
-    document.getElementById("answerBox").textContent = '';
-
-    document.getElementById("answerBox").className = '';
-
-
-
-    const lowerBound = Math.pow(10, difficulty - 1);
-
-    const upperBound = Math.pow(10, difficulty) - 1;
-
-    const resultBound = upperBound;
-
-    const multiplicationSafeUpper = Math.floor(Math.sqrt(resultBound));
-
-
-
-    let valid = false;
-
-
-
-    while (!valid) {
-
-        switch (currentOperator) {
-
-            case '+':
-
-                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-
-                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-
-                result1 = correctNum1 + correctNum2;
-
-
-
-                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-
-                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-
-                result2 = correctNum3 + correctNum4;
-
-                break;
-
-
-
-            case '-':
-
-                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-
-                correctNum2 = getRandomNumberInRange(lowerBound, correctNum1);
-
-                result1 = correctNum1 - correctNum2;
-
-
-
-                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-
-                correctNum4 = getRandomNumberInRange(lowerBound, correctNum3);
-
-                result2 = correctNum3 - correctNum4;
-
-                break;
-
-
-
-            case '*':
-
-                correctNum1 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-
-                correctNum2 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-
-                result1 = correctNum1 * correctNum2;
-
-
-
-                correctNum3 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-
-                correctNum4 = getRandomNumberInRange(lowerBound, multiplicationSafeUpper);
-
-                result2 = correctNum3 * correctNum4;
-
-                break;
-
-
-
-            case '÷':
-
-            case '/':
-
-                correctNum2 = getRandomNumberInRange(1, upperBound);
-
-                result1 = getRandomNumberInRange(lowerBound, upperBound);
-
-                correctNum1 = result1 * correctNum2;
-
-
-
-                correctNum4 = getRandomNumberInRange(1, upperBound);
-
-                result2 = getRandomNumberInRange(lowerBound, upperBound);
-
-                correctNum3 = result2 * correctNum4;
-
-                break;
-
-        }
-
-        }
-
-
-
-        // Common Result Calculations
-
-        switch (currentOperator) {
-
-            case '+':
-
-                result3 = correctNum1 + correctNum3;
-
-                result4 = correctNum2 + correctNum4;
-
-                break;
-
-            case '-':
-
-                result3 = correctNum1 - correctNum3;
-
-                result4 = correctNum2 - correctNum4;
-
-                break;
-
-            case '*':
-
-                result3 = correctNum1 * correctNum3;
-
-                result4 = correctNum2 * correctNum4;
-
-                break;
-
-            case '÷':
-
-            case '/':
-
-                result3 = correctNum3 !== 0 ? correctNum1 / correctNum3 : 0;
-
-                result4 = correctNum4 !== 0 ? correctNum2 / correctNum4 : 0;
-
-                break;
-
-        }
-
-
-
-        if (
-
-            result1 <= resultBound && result2 <= resultBound &&
-
-            result3 <= resultBound && result4 <= resultBound
-
-        ) {
-
-            valid = true;
-
-        }
-
-    }
-
-
-
-    document.getElementById("result1").value = result1;
-
-    document.getElementById("result2").value = result2;
-
-    document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
-
-    document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
-
-}
-
-
-
-
-
-              
-
-           
-
-        function checkResults() {
-
-            const num1 = parseFloat(document.getElementById("num1").value);
-
-            const num2 = parseFloat(document.getElementById("num2").value);
-
-            const num3 = parseFloat(document.getElementById("num3").value);
-
-            const num4 = parseFloat(document.getElementById("num4").value);
-
-            const answerBox = document.getElementById("answerBox");
-
-            
-
-            if (isNaN(num1) || isNaN(num2) || isNaN(num3) || isNaN(num4)) {
-
-                answerBox.innerText = "Please fill in all numbers!";
-
-                answerBox.className = "wrong";
-
-                return;
-
-            }
-
-            
-
-            let allCorrect = true;
-
-            switch(currentOperator) {
-
-                case '+':
-
-                    allCorrect = (num1 + num2 === result1) && 
-
-                                 (num3 + num4 === result2) &&
-
-                                 (num1 + num3 === result3) &&
-
-                                 (num2 + num4 === result4);
-
-                    break;
-
-                case '-':
-
-                    allCorrect = (num1 - num2 === result1) && 
-
-                                 (num3 - num4 === result2) &&
-
-                                 (num1 - num3 === result3) &&
-
-                                 (num2 - num4 === result4);
-
-                    break;
-
-                case 'X':
-
-                    allCorrect = (num1 * num2 === result1) && 
-
-                                 (num3 * num4 === result2) &&
-
-                                 (num1 * num3 === result3) &&
-
-                                 (num2 * num4 === result4);
-
-                    break;
-
-                 case '÷':
-
-                    if (num2 === 0 || num4 === 0 || num3 === 0) {
-
-                        allCorrect = false;
-
-                        break;
-
-                    }
-
-                    allCorrect = (Math.abs(num1 / num2 - result1) < 0.0001) && 
-
-                                 (Math.abs(num3 / num4 - result2) < 0.0001) &&
-
-                                 (Math.abs(num1 / num3 - result3) < 0.0001) &&
-
-                                 (Math.abs(num2 / num4 - result4) < 0.0001);
-
-                    break;
-
-            }
-
-            
-
-            if (allCorrect) {
-
-                score++;
-
-                document.getElementById("score").textContent = "Score: " + score;
-
-                answerBox.innerText = "Correct!";
-
-                answerBox.className = "correct";
-
-            } else {
-
-                answerBox.innerHTML = `Incorrect!<br>Correct answers:<br>
-
-                    num1 = ${correctNum1}<br>
-
-                    num2 = ${correctNum2}<br>
-
-                    num3 = ${correctNum3}<br>
-
-                    num4 = ${correctNum4}`;
-
-                answerBox.className = "wrong";
-
-            }
-
-            
-
-            round++;
-
-            document.getElementById("checkBtn").disabled = true;
-
-            document.getElementById("generateBtn").disabled = false;
-
-        }
-
-
-
-        function savePlayerData() {
-
-            const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
-
-            if (currentPlayer) {
-
-                currentPlayer.score = score;
-
-                localStorage.setItem("currentPlayer", JSON.stringify(currentPlayer));
-
-                
-
-                const playerRef = db.ref('players/' + currentPlayer.name.replace('.', '_'));
-
-                playerRef.set(currentPlayer)
-
-                    .then(() => console.log('Player data saved to Firebase'))
-
-                    .catch(error => console.error('Error saving data:', error));
-
-            }
-
-        }
-
-        
-
-        // Initialize the game when page loads
-
-        window.onload = function() {
-
-            try {
-
-                initGame();
-
-            } catch (error) {
-
-                console.error("Error initializing game:", error);
-
-                alert("Error initializing game. Please check your connection and try again.");
-
-            }
-
-        };
-
-    </script>
-
+              
+           
+        function checkResults() {
+            const num1 = parseFloat(document.getElementById("num1").value);
+            const num2 = parseFloat(document.getElementById("num2").value);
+            const num3 = parseFloat(document.getElementById("num3").value);
+            const num4 = parseFloat(document.getElementById("num4").value);
+            const answerBox = document.getElementById("answerBox");
+            
+            if (isNaN(num1) || isNaN(num2) || isNaN(num3) || isNaN(num4)) {
+                answerBox.innerText = "Please fill in all numbers!";
+                answerBox.className = "wrong";
+                return;
+            }
+            
+            let allCorrect = true;
+            switch(currentOperator) {
+                case '+':
+                    allCorrect = (num1 + num2 === result1) && 
+                                 (num3 + num4 === result2) &&
+                                 (num1 + num3 === result3) &&
+                                 (num2 + num4 === result4);
+                    break;
+                case '-':
+                    allCorrect = (num1 - num2 === result1) && 
+                                 (num3 - num4 === result2) &&
+                                 (num1 - num3 === result3) &&
+                                 (num2 - num4 === result4);
+                    break;
+                case 'X':
+                    allCorrect = (num1 * num2 === result1) && 
+                                 (num3 * num4 === result2) &&
+                                 (num1 * num3 === result3) &&
+                                 (num2 * num4 === result4);
+                    break;
+                case '÷':
+                    if (num2 === 0 || num4 === 0 || num3 === 0) {
+                        allCorrect = false;
+                        break;
+                    }
+                    allCorrect = (Math.abs(num1 / num2 - result1) < 0.0001) && 
+                                 (Math.abs(num3 / num4 - result2) < 0.0001) &&
+                                 (Math.abs(num1 / num3 - result3) < 0.0001) &&
+                                 (Math.abs(num2 / num4 - result4) < 0.0001);
+                    break;
+            }
+            
+            if (allCorrect) {
+                score++;
+                document.getElementById("score").textContent = "Score: " + score;
+                answerBox.innerText = "Correct!";
+                answerBox.className = "correct";
+            } else {
+                answerBox.innerHTML = `Incorrect!<br>Correct answers:<br>
+                    num1 = ${correctNum1}<br>
+                    num2 = ${correctNum2}<br>
+                    num3 = ${correctNum3}<br>
+                    num4 = ${correctNum4}`;
+                answerBox.className = "wrong";
+            }
+            
+            round++;
+            document.getElementById("checkBtn").disabled = true;
+            document.getElementById("generateBtn").disabled = false;
+        }
+
+        function savePlayerData() {
+            const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
+            if (currentPlayer) {
+                currentPlayer.score = score;
+                localStorage.setItem("currentPlayer", JSON.stringify(currentPlayer));
+                
+                const playerRef = db.ref('players/' + currentPlayer.name.replace('.', '_'));
+                playerRef.set(currentPlayer)
+                    .then(() => console.log('Player data saved to Firebase'))
+                    .catch(error => console.error('Error saving data:', error));
+            }
+        }
+        
+        // Initialize the game when page loads
+        window.onload = function() {
+            try {
+                initGame();
+            } catch (error) {
+                console.error("Error initializing game:", error);
+                alert("Error initializing game. Please check your connection and try again.");
+            }
+        };
+    </script>
 </body>
-
 </html>
