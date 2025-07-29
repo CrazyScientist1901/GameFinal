@@ -305,7 +305,6 @@ function generatePuzzle() {
     // Clear previous inputs but keep results
     ['num1', 'num2', 'num3', 'num4'].forEach(id => {
         document.getElementById(id).value = '';
-        document.getElementById(id).style.backgroundColor = ''; // Reset background color if any
     });
     document.getElementById("answerBox").textContent = '';
     document.getElementById("answerBox").className = '';
@@ -343,11 +342,11 @@ function generatePuzzle() {
 
             case '*':
                 correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum1));
+                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
                 result1 = correctNum1 * correctNum2;
 
                 correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-                correctNum4 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum3));
+                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
                 result2 = correctNum3 * correctNum4;
                 break;
 
@@ -382,7 +381,7 @@ function generatePuzzle() {
                 break;
         }
 
-        // Validate all results
+        // Validate all results stay within bounds
         valid = true;
         const results = [result1, result2, result3, result4];
         for (const result of results) {
@@ -393,21 +392,18 @@ function generatePuzzle() {
         }
     }
 
-    if (!valid) {
-        // Fallback to addition if we couldn't generate valid numbers
-        currentOperator = '+';
-        generatePuzzle();
-        return;
-    }
-
     // Display the results in the readonly fields
-    document.getElementById("result1").value = Number.isInteger(result1) ? result1 : result1.toFixed(2);
-    document.getElementById("result2").value = Number.isInteger(result2) ? result2 : result2.toFixed(2);
-    document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
-    document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
+    const result1El = document.getElementById("result1");
+    const result2El = document.getElementById("result2"); 
+    const result3El = document.getElementById("result3");
+    const result4El = document.getElementById("result4");
 
-    // Debug output to console
-    console.log("Generated puzzle:", {
+    if (result1El) result1El.value = Number.isInteger(result1) ? result1 : result1.toFixed(2);
+    if (result2El) result2El.value = Number.isInteger(result2) ? result2 : result2.toFixed(2);
+    if (result3El) result3El.value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
+    if (result4El) result4El.value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
+
+    console.log("Generated numbers:", {
         num1: correctNum1, num2: correctNum2, result1: result1,
         num3: correctNum3, num4: correctNum4, result2: result2,
         result3: result3, result4: result4, operator: currentOperator
