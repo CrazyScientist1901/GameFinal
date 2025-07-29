@@ -310,11 +310,11 @@ function generatePuzzle() {
 
     const lowerBound = Math.pow(10, difficulty - 1);
     const upperBound = Math.pow(10, difficulty) - 1;
-    const maxResult = upperBound * 2; // Slightly higher limit for intermediate calculations
+    const resultBound = upperBound;
 
     let valid = false;
     let attempts = 0;
-    const maxAttempts = 100; // Prevent infinite loops
+    const maxAttempts = 50;
 
     while (!valid && attempts < maxAttempts) {
         attempts++;
@@ -341,28 +341,25 @@ function generatePuzzle() {
                 break;
 
             case '*':
-                // For multiplication, ensure products don't exceed bounds
-                correctNum1 = getRandomNumberInRange(lowerBound, Math.min(100, upperBound));
+                // For multiplication, ensure both numbers are small enough that their product stays within bounds
+                const maxFactor = Math.floor(Math.sqrt(upperBound));
+                correctNum1 = getRandomNumberInRange(lowerBound, maxFactor);
                 correctNum2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum1));
                 result1 = correctNum1 * correctNum2;
 
-                correctNum3 = getRandomNumberInRange(lowerBound, Math.min(100, upperBound));
+                correctNum3 = getRandomNumberInRange(lowerBound, maxFactor);
                 correctNum4 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum3));
                 result2 = correctNum3 * correctNum4;
                 break;
 
             case '/':
-                do {
-                    correctNum2 = getRandomNumberInRange(1, upperBound);
-                    result1 = getRandomNumberInRange(lowerBound, upperBound);
-                    correctNum1 = result1 * correctNum2;
-                } while (correctNum1 > upperBound);
+                correctNum2 = getRandomNumberInRange(1, upperBound);
+                result1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum1 = result1 * correctNum2;
 
-                do {
-                    correctNum4 = getRandomNumberInRange(1, upperBound);
-                    result2 = getRandomNumberInRange(lowerBound, upperBound);
-                    correctNum3 = result2 * correctNum4;
-                } while (correctNum3 > upperBound);
+                correctNum4 = getRandomNumberInRange(1, upperBound);
+                result2 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum3 = result2 * correctNum4;
                 break;
         }
 
@@ -389,35 +386,29 @@ function generatePuzzle() {
         // Validate all results
         valid = true;
         
-        // Check if any result is NaN or Infinity
-        if ([result1, result2, result3, result4].some(isNaN)) {
-            valid = false;
-            continue;
+        // Check if all results are within the digit limit
+        const results = [result1, result2, result3, result4];
+        for (const result of results) {
+            if (result > upperBound || result < lowerBound) {
+                valid = false;
+                break;
+            }
         }
         
-        // Check if any result is too large
-        if ([result1, result2, result3, result4].some(r => r > maxResult)) {
-            valid = false;
-            continue;
-        }
-        
-        // Check for division by zero
-        if (currentOperator === '/' && 
-            (correctNum3 === 0 || correctNum4 === 0)) {
-            valid = false;
-            continue;
-        }
-        
-        // Check for very small numbers in division
-        if (currentOperator === '/' && 
-            (Math.abs(result3) < 0.01 || Math.abs(result4) < 0.01)) {
-            valid = false;
+        // Additional checks for division
+        if (currentOperator === '/') {
+            if (correctNum3 === 0 || correctNum4 === 0) {
+                valid = false;
+            }
+            if (!Number.isInteger(result1) || !Number.isInteger(result2)) {
+                valid = false;
+            }
         }
     }
 
     if (!valid) {
-        // Fallback to addition if we couldn't generate valid numbers
-        currentOperator = '+';
+        // If we couldn't generate valid numbers after many attempts, try a different operator
+        currentOperator = allowedOperations.find(op => op !== currentOperator) || '+';
         generatePuzzle();
         return;
     }
@@ -427,8 +418,7 @@ function generatePuzzle() {
     document.getElementById("result2").value = Number.isInteger(result2) ? result2 : result2.toFixed(2);
     document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
     document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
-}
-                  
+}                  
            
         function checkResults() {
             const num1 = parseFloat(document.getElementById("num1").value);
