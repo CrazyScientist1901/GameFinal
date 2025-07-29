@@ -300,7 +300,10 @@ function generatePuzzle() {
 
     currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
     if (currentOperator === 'X') currentOperator = '*';
-    document.getElementById("operator").textContent = currentOperator === '*' ? 'X' : currentOperator;
+     document.getElementById("operator").textContent = currentOperator === '*' ? 'X' : currentOperator;
+    if(currentOperator==='÷') currentOperator='/';
+     document.getElementById("operator").textContent = currentOperator === '/' ? '÷' : currentOperator;
+   
 
     // Clear previous inputs
     ['num1', 'num2', 'num3', 'num4'].forEach(id => document.getElementById(id).value = '');
