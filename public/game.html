@@ -468,8 +468,6 @@ if (
     document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
 }
 
-              
-           
 function checkResults() {
     const num1 = parseFloat(document.getElementById("num1").value);
     const num2 = parseFloat(document.getElementById("num2").value);
@@ -485,7 +483,7 @@ function checkResults() {
     
     // Check for division by zero
     if ((currentOperator === '/' || currentOperator === '÷') && 
-        (num2 === 0 || num4 === 0 || num3 === 0)) {
+        (num2 === 0 || num4 === 0)) {
         answerBox.innerText = "Cannot divide by zero!";
         answerBox.className = "wrong";
         return;
@@ -499,15 +497,13 @@ function checkResults() {
         result4: calculate(num2, num4, currentOperator)
     };
 
-    // Improved floating-point comparison with tolerance
-    const areEqual = (a, b) => Math.abs(a - b) < 0.0001;
-    
     // Check if all equations are satisfied
+    const epsilon = 0.001; // Tolerance for floating point comparison
     const isCorrect = (
-        areEqual(userResults.result1, result1) &&
-        areEqual(userResults.result2, result2) &&
-        areEqual(userResults.result3, result3) &&
-        areEqual(userResults.result4, result4)
+        Math.abs(userResults.result1 - result1) < epsilon &&
+        Math.abs(userResults.result2 - result2) < epsilon &&
+        Math.abs(userResults.result3 - result3) < epsilon &&
+        Math.abs(userResults.result4 - result4) < epsilon
     );
 
     if (isCorrect) {
@@ -529,16 +525,8 @@ function checkResults() {
     document.getElementById("checkBtn").disabled = true;
     document.getElementById("generateBtn").disabled = false;
 }
-        function formatOperator(op) {
-    switch(op) {
-        case '*': return '×';
-        case '/': return '÷';
-        case 'X': return '×';
-        case '÷': return '÷';
-        default: return op;
-    }
-}
-        function calculate(a, b, op) {
+
+function calculate(a, b, op) {
     switch(op) {
         case '+': return a + b;
         case '-': return a - b;
@@ -547,6 +535,16 @@ function checkResults() {
         case '/':
         case '÷': return a / b;
         default: return NaN;
+    }
+}
+
+function formatOperator(op) {
+    switch(op) {
+        case '*': return '×';
+        case '/': return '÷';
+        case 'X': return '×';
+        case '÷': return '÷';
+        default: return op;
     }
 }
         
