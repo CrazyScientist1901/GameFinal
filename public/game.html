@@ -489,21 +489,25 @@ function checkResults() {
         return;
     }
 
-    // Calculate all required results
-    const userResults = {
-        result1: calculate(num1, num2, currentOperator),
-        result2: calculate(num3, num4, currentOperator),
-        result3: calculate(num1, num3, currentOperator),
-        result4: calculate(num2, num4, currentOperator)
-    };
+    // Get the required results from the display
+    const requiredResult1 = parseFloat(document.getElementById("result1").value);
+    const requiredResult2 = parseFloat(document.getElementById("result2").value);
+    const requiredResult3 = parseFloat(document.getElementById("result3").value);
+    const requiredResult4 = parseFloat(document.getElementById("result4").value);
 
-    // Check if all equations are satisfied
-    const epsilon = 0.001; // Tolerance for floating point comparison
+    // Calculate all required results using user's numbers
+    const userResult1 = calculate(num1, num2, currentOperator);
+    const userResult2 = calculate(num3, num4, currentOperator);
+    const userResult3 = calculate(num1, num3, currentOperator);
+    const userResult4 = calculate(num2, num4, currentOperator);
+
+    // Check if all equations are satisfied (with tolerance for floating point)
+    const epsilon = 0.001;
     const isCorrect = (
-        Math.abs(userResults.result1 - result1) < epsilon &&
-        Math.abs(userResults.result2 - result2) < epsilon &&
-        Math.abs(userResults.result3 - result3) < epsilon &&
-        Math.abs(userResults.result4 - result4) < epsilon
+        Math.abs(userResult1 - requiredResult1) < epsilon &&
+        Math.abs(userResult2 - requiredResult2) < epsilon &&
+        Math.abs(userResult3 - requiredResult3) < epsilon &&
+        Math.abs(userResult4 - requiredResult4) < epsilon
     );
 
     if (isCorrect) {
@@ -514,10 +518,10 @@ function checkResults() {
     } else {
         answerBox.innerHTML = `Incorrect!<br>Your numbers don't produce all the required results.<br>
             One possible solution:<br>
-            ${correctNum1} ${formatOperator(currentOperator)} ${correctNum2} = ${result1}<br>
-            ${correctNum3} ${formatOperator(currentOperator)} ${correctNum4} = ${result2}<br>
-            ${correctNum1} ${formatOperator(currentOperator)} ${correctNum3} = ${result3}<br>
-            ${correctNum2} ${formatOperator(currentOperator)} ${correctNum4} = ${result4}`;
+            ${correctNum1} ${formatOperator(currentOperator)} ${correctNum2} = ${requiredResult1}<br>
+            ${correctNum3} ${formatOperator(currentOperator)} ${correctNum4} = ${requiredResult2}<br>
+            ${correctNum1} ${formatOperator(currentOperator)} ${correctNum3} = ${requiredResult3}<br>
+            ${correctNum2} ${formatOperator(currentOperator)} ${correctNum4} = ${requiredResult4}`;
         answerBox.className = "wrong";
     }
     
@@ -525,7 +529,6 @@ function checkResults() {
     document.getElementById("checkBtn").disabled = true;
     document.getElementById("generateBtn").disabled = false;
 }
-
 function calculate(a, b, op) {
     switch(op) {
         case '+': return a + b;
