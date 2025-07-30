@@ -499,15 +499,15 @@ function checkResults() {
         result4: calculate(num2, num4, currentOperator)
     };
 
-    // Format the results to 2 decimal places for comparison
-    const formatForComparison = (num) => Math.round(num * 100) / 100;
+    // Improved floating-point comparison with tolerance
+    const areEqual = (a, b) => Math.abs(a - b) < 0.0001;
     
     // Check if all equations are satisfied
     const isCorrect = (
-        formatForComparison(userResults.result1) === formatForComparison(result1) &&
-        formatForComparison(userResults.result2) === formatForComparison(result2) &&
-        formatForComparison(userResults.result3) === formatForComparison(result3) &&
-        formatForComparison(userResults.result4) === formatForComparison(result4)
+        areEqual(userResults.result1, result1) &&
+        areEqual(userResults.result2, result2) &&
+        areEqual(userResults.result3, result3) &&
+        areEqual(userResults.result4, result4)
     );
 
     if (isCorrect) {
@@ -529,6 +529,27 @@ function checkResults() {
     document.getElementById("checkBtn").disabled = true;
     document.getElementById("generateBtn").disabled = false;
 }
+        function formatOperator(op) {
+    switch(op) {
+        case '*': return '×';
+        case '/': return '÷';
+        case 'X': return '×';
+        case '÷': return '÷';
+        default: return op;
+    }
+}
+        function calculate(a, b, op) {
+    switch(op) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*':
+        case 'X': return a * b;
+        case '/':
+        case '÷': return a / b;
+        default: return NaN;
+    }
+}
+        
         function savePlayerData() {
             const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
             if (currentPlayer) {
