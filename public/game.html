@@ -485,7 +485,7 @@ function checkResults() {
     
     // Check for division by zero
     if ((currentOperator === '/' || currentOperator === '÷') && 
-        (num2 === 0 || num4 === 0)) {
+        (num2 === 0 || num4 === 0 || num3 === 0)) {
         answerBox.innerText = "Cannot divide by zero!";
         answerBox.className = "wrong";
         return;
@@ -499,13 +499,15 @@ function checkResults() {
         result4: calculate(num2, num4, currentOperator)
     };
 
+    // Format the results to 2 decimal places for comparison
+    const formatForComparison = (num) => Math.round(num * 100) / 100;
+    
     // Check if all equations are satisfied
-    const epsilon = 0.001; // Tolerance for floating point comparison
     const isCorrect = (
-        Math.abs(userResults.result1 - result1) < epsilon &&
-        Math.abs(userResults.result2 - result2) < epsilon &&
-        Math.abs(userResults.result3 - result3) < epsilon &&
-        Math.abs(userResults.result4 - result4) < epsilon
+        formatForComparison(userResults.result1) === formatForComparison(result1) &&
+        formatForComparison(userResults.result2) === formatForComparison(result2) &&
+        formatForComparison(userResults.result3) === formatForComparison(result3) &&
+        formatForComparison(userResults.result4) === formatForComparison(result4)
     );
 
     if (isCorrect) {
@@ -527,29 +529,6 @@ function checkResults() {
     document.getElementById("checkBtn").disabled = true;
     document.getElementById("generateBtn").disabled = false;
 }
-
-function calculate(a, b, op) {
-    switch(op) {
-        case '+': return a + b;
-        case '-': return a - b;
-        case '*':
-        case 'X': return a * b;
-        case '/':
-        case '÷': return a / b;
-        default: return NaN;
-    }
-}
-
-function formatOperator(op) {
-    switch(op) {
-        case '*': return '×';
-        case '/': return '÷';
-        case 'X': return '×';
-        case '÷': return '÷';
-        default: return op;
-    }
-}
-
         function savePlayerData() {
             const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
             if (currentPlayer) {
