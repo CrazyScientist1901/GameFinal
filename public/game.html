@@ -363,11 +363,11 @@ function generatePuzzle() {
 
             case '/':
     // Ensure we get whole number results
-    correctNum2 = getRandomNumberInRange(1, upperBound);
+    correctNum2 = getRandomNumberInRange(1, upperBound); // Avoid division by zero
     result1 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum2));
     correctNum1 = result1 * correctNum2;
 
-    correctNum4 = getRandomNumberInRange(1, upperBound);
+    correctNum4 = getRandomNumberInRange(1, upperBound); // Avoid division by zero
     result2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum4));
     correctNum3 = result2 * correctNum4;
     break;
