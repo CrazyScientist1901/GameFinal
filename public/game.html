@@ -532,22 +532,19 @@ function checkResults() {
         answerBox.innerText = "Correct!";
         answerBox.className = "correct";
     } else {
-        // Check if the user happened to find an alternative correct solution
-        const isAlternativeSolution = (
-            (num1 === correctNum1 && num2 === correctNum2 && num3 === correctNum3 && num4 === correctNum4) ||
-            (num1 === correctNum3 && num2 === correctNum4 && num3 === correctNum1 && num4 === correctNum2)
-        );
+        // Check if the user found a valid alternative solution
+        const isAlternativeSolution = checkAlternativeSolution(num1, num2, num3, num4);
         
         if (isAlternativeSolution) {
             score++;
             document.getElementById("score").textContent = "Score: " + score;
-            answerBox.innerText = "Correct!";
+            answerBox.innerText = "Correct! (Alternative Solution)";
             answerBox.className = "correct";
         } else {
             answerBox.innerHTML = `Incorrect!<br>Your numbers don't produce all the required results.<br>
                 One possible solution:<br>
                 ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum2} = ${result1}<br>
-                ${correctNum3} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result2}<br>;
+                ${correctNum3} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result2}<br>
                 ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum3} = ${result3}<br>
                 ${correctNum2} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result4}`;
             answerBox.className = "wrong";
@@ -559,6 +556,33 @@ function checkResults() {
     document.getElementById("generateBtn").disabled = false;
 }
 
+// New helper function to check for alternative valid solutions
+function checkAlternativeSolution(num1, num2, num3, num4) {
+    // Check if all equations hold true with these numbers
+    const op = currentOperator;
+    const epsilon = 0.0001; // For floating point comparison
+    
+    // Check all four equations
+    const eq1 = Math.abs(calculate(num1, num2, op) - result1) < epsilon;
+    const eq2 = Math.abs(calculate(num3, num4, op) - result2) < epsilon;
+    const eq3 = Math.abs(calculate(num1, num3, op) - result3) < epsilon;
+    const eq4 = Math.abs(calculate(num2, num4, op) - result4) < epsilon;
+    
+    return eq1 && eq2 && eq3 && eq4;
+}
+
+// Helper function to perform the operation
+function calculate(a, b, op) {
+    switch(op) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*': 
+        case 'X': return a * b;
+        case '/':
+        case '÷': return b !== 0 ? a / b : NaN;
+        default: return NaN;
+    }
+}
         function savePlayerData() {
             const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
             if (currentPlayer) {
