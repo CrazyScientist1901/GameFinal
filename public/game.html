@@ -483,31 +483,32 @@ function checkResults() {
         return;
     }
     
-    // Check if any division by zero would occur
-    if (currentOperator === '/' || currentOperator === '÷') {
-        if (num2 === 0 || num4 === 0 || num3 === 0) {
-            answerBox.innerText = "Cannot divide by zero!";
-            answerBox.className = "wrong";
-            return;
-        }
+    // Check for division by zero
+    if ((currentOperator === '/' || currentOperator === '÷') && 
+        (num2 === 0 || num4 === 0)) {
+        answerBox.innerText = "Cannot divide by zero!";
+        answerBox.className = "wrong";
+        return;
     }
 
-    // Calculate what the results should be based on user's numbers
-    const userResult1 = calculate(num1, num2, currentOperator);
-    const userResult2 = calculate(num3, num4, currentOperator);
-    const userResult3 = calculate(num1, num3, currentOperator);
-    const userResult4 = calculate(num2, num4, currentOperator);
+    // Calculate all required results
+    const userResults = {
+        result1: calculate(num1, num2, currentOperator),
+        result2: calculate(num3, num4, currentOperator),
+        result3: calculate(num1, num3, currentOperator),
+        result4: calculate(num2, num4, currentOperator)
+    };
 
     // Check if all equations are satisfied
-    const epsilon = 0.0001; // Small tolerance for floating point comparison
-    const equationsCorrect = (
-        Math.abs(userResult1 - result1) < epsilon &&
-        Math.abs(userResult2 - result2) < epsilon &&
-        Math.abs(userResult3 - result3) < epsilon &&
-        Math.abs(userResult4 - result4) < epsilon
+    const epsilon = 0.001; // Tolerance for floating point comparison
+    const isCorrect = (
+        Math.abs(userResults.result1 - result1) < epsilon &&
+        Math.abs(userResults.result2 - result2) < epsilon &&
+        Math.abs(userResults.result3 - result3) < epsilon &&
+        Math.abs(userResults.result4 - result4) < epsilon
     );
 
-    if (equationsCorrect) {
+    if (isCorrect) {
         score++;
         document.getElementById("score").textContent = "Score: " + score;
         answerBox.innerText = "Correct!";
@@ -515,10 +516,10 @@ function checkResults() {
     } else {
         answerBox.innerHTML = `Incorrect!<br>Your numbers don't produce all the required results.<br>
             One possible solution:<br>
-            ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator === '/' ? '÷' : currentOperator} ${correctNum2} = ${result1}<br>
-            ${correctNum3} ${currentOperator === '*' ? 'X' : currentOperator === '/' ? '÷' : currentOperator} ${correctNum4} = ${result2}<br>
-            ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator === '/' ? '÷' : currentOperator} ${correctNum3} = ${result3}<br>
-            ${correctNum2} ${currentOperator === '*' ? 'X' : currentOperator === '/' ? '÷' : currentOperator} ${correctNum4} = ${result4}`;
+            ${correctNum1} ${formatOperator(currentOperator)} ${correctNum2} = ${result1}<br>
+            ${correctNum3} ${formatOperator(currentOperator)} ${correctNum4} = ${result2}<br>
+            ${correctNum1} ${formatOperator(currentOperator)} ${correctNum3} = ${result3}<br>
+            ${correctNum2} ${formatOperator(currentOperator)} ${correctNum4} = ${result4}`;
         answerBox.className = "wrong";
     }
     
@@ -527,7 +528,6 @@ function checkResults() {
     document.getElementById("generateBtn").disabled = false;
 }
 
-// Helper function to perform calculations
 function calculate(a, b, op) {
     switch(op) {
         case '+': return a + b;
@@ -538,6 +538,17 @@ function calculate(a, b, op) {
         case '÷': return a / b;
         default: return NaN;
     }
+}
+
+function formatOperator(op) {
+    switch(op) {
+        case '*': return '×';
+        case '/': return '÷';
+        case 'X': return '×';
+        case '÷': return '÷';
+        default: return op;
+    }
+}
 }
         function savePlayerData() {
             const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
