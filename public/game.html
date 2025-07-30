@@ -436,14 +436,13 @@ if (
             result3 = correctNum1 + correctNum3;
             result4 = correctNum2 + correctNum4;
 
-            if (!valid && currentOperator === '/') {
-        currentOperator = '+';
-        document.getElementById("operator").textContent = '+';
-        // Reset and generate addition problem
-        generatePuzzle();
-        return;  // Exit and let the new call handle it
-    }
-
+           if (!valid && currentOperator === '/') {
+    currentOperator = '+';
+    document.getElementById("operator").textContent = '+';
+    // Reset attempts and let the loop continue with addition
+    attempts = 0;
+    continue;
+}
             if (
     result1 <= resultBound && 
     result2 <= resultBound &&
