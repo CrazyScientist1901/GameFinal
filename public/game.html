@@ -363,6 +363,8 @@ function generatePuzzle() {
 
             case '/':
     // Ensure we get whole number results
+    case '/':
+    // Ensure we get whole number results
     correctNum2 = getRandomNumberInRange(1, upperBound); // Avoid division by zero
     result1 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum2));
     correctNum1 = result1 * correctNum2;
@@ -370,7 +372,12 @@ function generatePuzzle() {
     correctNum4 = getRandomNumberInRange(1, upperBound); // Avoid division by zero
     result2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum4));
     correctNum3 = result2 * correctNum4;
-    break;}
+    
+    // Calculate common results for division
+    result3 = correctNum1 / correctNum3;
+    result4 = correctNum2 / correctNum4;
+    break;
+        }
 
         // Common Result Calculations
         switch (currentOperator) {
@@ -402,14 +409,11 @@ if (
     !isNaN(result1) && !isNaN(result2) && 
     !isNaN(result3) && !isNaN(result4) &&
     (currentOperator !== '/' || 
-     (Number.isInteger(result3) && 
-      Number.isInteger(result4) &&
-      correctNum2 !== 0 && 
+     (correctNum3 !== 0 &&  // Ensure we're not dividing by zero in common results
       correctNum4 !== 0))
 ) {
     valid = true;
 }
-    }
 
     if (!valid) {
         // Instead of recursion, just force addition
