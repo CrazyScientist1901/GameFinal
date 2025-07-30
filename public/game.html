@@ -483,72 +483,43 @@ function checkResults() {
         return;
     }
     
-    // Calculate what the results should be based on user's numbers
-    let userResult1, userResult2, userResult3, userResult4;
-    let operationsValid = true;
-    
-    switch(currentOperator) {
-        case '+':
-            userResult1 = num1 + num2;
-            userResult2 = num3 + num4;
-            userResult3 = num1 + num3;
-            userResult4 = num2 + num4;
-            break;
-        case '-':
-            userResult1 = num1 - num2;
-            userResult2 = num3 - num4;
-            userResult3 = num1 - num3;
-            userResult4 = num2 - num4;
-            break;
-        case 'X':
-            userResult1 = num1 * num2;
-            userResult2 = num3 * num4;
-            userResult3 = num1 * num3;
-            userResult4 = num2 * num4;
-            break;
-        case '÷':
-            if (num2 === 0 || num4 === 0) {
-                operationsValid = false;
-            } else {
-                userResult1 = num1 / num2;
-                userResult2 = num3 / num4;
-                userResult3 = num3 !== 0 ? num1 / num3 : NaN;
-                userResult4 = num4 !== 0 ? num2 / num4 : NaN;
-            }
-            break;
+    // Check if any division by zero would occur
+    if (currentOperator === '/' || currentOperator === '÷') {
+        if (num2 === 0 || num4 === 0 || num3 === 0) {
+            answerBox.innerText = "Cannot divide by zero!";
+            answerBox.className = "wrong";
+            return;
+        }
     }
-    
-    // Compare calculated results with expected results
-    const resultsMatch = operationsValid && (
-        Math.abs(userResult1 - result1) < 0.0001 &&
-        Math.abs(userResult2 - result2) < 0.0001 &&
-        Math.abs(userResult3 - result3) < 0.0001 &&
-        Math.abs(userResult4 - result4) < 0.0001
+
+    // Calculate what the results should be based on user's numbers
+    const userResult1 = calculate(num1, num2, currentOperator);
+    const userResult2 = calculate(num3, num4, currentOperator);
+    const userResult3 = calculate(num1, num3, currentOperator);
+    const userResult4 = calculate(num2, num4, currentOperator);
+
+    // Check if all equations are satisfied
+    const epsilon = 0.0001; // Small tolerance for floating point comparison
+    const equationsCorrect = (
+        Math.abs(userResult1 - result1) < epsilon &&
+        Math.abs(userResult2 - result2) < epsilon &&
+        Math.abs(userResult3 - result3) < epsilon &&
+        Math.abs(userResult4 - result4) < epsilon
     );
-    
-    if (resultsMatch) {
+
+    if (equationsCorrect) {
         score++;
         document.getElementById("score").textContent = "Score: " + score;
         answerBox.innerText = "Correct!";
         answerBox.className = "correct";
     } else {
-        // Check if the user found a valid alternative solution
-        const isAlternativeSolution = checkAlternativeSolution(num1, num2, num3, num4);
-        
-        if (isAlternativeSolution) {
-            score++;
-            document.getElementById("score").textContent = "Score: " + score;
-            answerBox.innerText = "Correct! (Alternative Solution)";
-            answerBox.className = "correct";
-        } else {
-            answerBox.innerHTML = `Incorrect!<br>Your numbers don't produce all the required results.<br>
-                One possible solution:<br>
-                ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum2} = ${result1}<br>
-                ${correctNum3} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result2}<br>
-                ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum3} = ${result3}<br>
-                ${correctNum2} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result4}`;
-            answerBox.className = "wrong";
-        }
+        answerBox.innerHTML = `Incorrect!<br>Your numbers don't produce all the required results.<br>
+            One possible solution:<br>
+            ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator === '/' ? '÷' : currentOperator} ${correctNum2} = ${result1}<br>
+            ${correctNum3} ${currentOperator === '*' ? 'X' : currentOperator === '/' ? '÷' : currentOperator} ${correctNum4} = ${result2}<br>
+            ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator === '/' ? '÷' : currentOperator} ${correctNum3} = ${result3}<br>
+            ${correctNum2} ${currentOperator === '*' ? 'X' : currentOperator === '/' ? '÷' : currentOperator} ${correctNum4} = ${result4}`;
+        answerBox.className = "wrong";
     }
     
     round++;
@@ -556,30 +527,15 @@ function checkResults() {
     document.getElementById("generateBtn").disabled = false;
 }
 
-// New helper function to check for alternative valid solutions
-function checkAlternativeSolution(num1, num2, num3, num4) {
-    // Check if all equations hold true with these numbers
-    const op = currentOperator;
-    const epsilon = 0.0001; // For floating point comparison
-    
-    // Check all four equations
-    const eq1 = Math.abs(calculate(num1, num2, op) - result1) < epsilon;
-    const eq2 = Math.abs(calculate(num3, num4, op) - result2) < epsilon;
-    const eq3 = Math.abs(calculate(num1, num3, op) - result3) < epsilon;
-    const eq4 = Math.abs(calculate(num2, num4, op) - result4) < epsilon;
-    
-    return eq1 && eq2 && eq3 && eq4;
-}
-
-// Helper function to perform the operation
+// Helper function to perform calculations
 function calculate(a, b, op) {
     switch(op) {
         case '+': return a + b;
         case '-': return a - b;
-        case '*': 
+        case '*':
         case 'X': return a * b;
         case '/':
-        case '÷': return b !== 0 ? a / b : NaN;
+        case '÷': return a / b;
         default: return NaN;
     }
 }
