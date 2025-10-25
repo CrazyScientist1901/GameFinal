@@ -117,6 +117,11 @@
             color: #e74c3c;
             font-weight: bold;
         }
+        .time-info {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0;
+        }
         @media (max-width: 480px) {
             .container {
                 padding: 10px;
@@ -173,8 +178,9 @@
         
         <div id="game" style="display: none;">
             <div class="timer">
-                Time Left: <span id="timeLeft">20</span> seconds
+                Time Left: <span id="timeLeft">90</span> seconds
             </div>
+            <p class="time-info">Time Taken: <span id="timeTaken">0</span> seconds</p>
             <p>Round: <span id="round">1</span> / 10</p>
             <div class="parent">
                 <input type="number" id="num1" placeholder="Number 1" min="0">
@@ -193,6 +199,7 @@
             </div>
             <button id="generateBtn" onclick="generatePuzzle()" disabled>Generate Puzzle</button>
             <button id="checkBtn" onclick="checkResults()" disabled>Check</button>
+            <button id="endGameBtn" onclick="endGameEarly()" style="background-color: #e74c3c;">End Game Early</button>
             
             <div id="answerBox"></div>
             <p id="score">Score: 0</p>
@@ -200,8 +207,6 @@
     </div>
 
     <script>
-        
-
         let score = 0;
         let round = 1;
         const maxRounds = 10;
@@ -210,7 +215,10 @@
         let result1, result2, result3, result4;
         let gameEnded = false;
         let timerInterval;
-        let timeLeft = 20;
+        let timeLeft = 90;
+        let totalTimeTaken = 0;
+        let gameStartTime = 0;
+        const totalGameTime = 90; // 90 seconds total game time
         
         // Game settings
         let allowedOperations = ['+', '-', 'X', '÷'];
@@ -222,6 +230,7 @@
         const displayOperations = document.getElementById('displayOperations');
         const displayDifficulty = document.getElementById('displayDifficulty');
         const timeLeftDisplay = document.getElementById('timeLeft');
+        const timeTakenDisplay = document.getElementById('timeTaken');
 
         function startGame() {
             const playerName = document.getElementById("name").value.trim();
@@ -246,7 +255,9 @@
                 name: playerName,
                 class: playerClass,
                 section: playerSection,
-                score: 0
+                score: 0,
+                timeTaken: 0,
+                completed: false
             }));
 
             document.getElementById("game").style.display = "block";
@@ -255,13 +266,18 @@
             score = 0;
             round = 1;
             gameEnded = false;
+            totalTimeTaken = 0;
+            gameStartTime = Date.now();
+            
             document.getElementById("score").textContent = "Score: " + score;
             document.getElementById("round").textContent = round;
             document.getElementById("answerBox").textContent = "";
+            document.getElementById("timeTaken").textContent = "0";
             
             // Enable generate button
             document.getElementById("generateBtn").disabled = false;
             document.getElementById("checkBtn").disabled = true;
+            document.getElementById("endGameBtn").disabled = false;
             document.querySelector("button[onclick='startGame()']").disabled = true;
             
             // Start the timer
@@ -272,8 +288,9 @@
         }
         
         function startTimer() {
-            timeLeft = 20;
+            timeLeft = totalGameTime;
             timeLeftDisplay.textContent = timeLeft;
+            timeLeftDisplay.classList.remove('warning');
             
             if (timerInterval) {
                 clearInterval(timerInterval);
@@ -283,20 +300,39 @@
                 timeLeft--;
                 timeLeftDisplay.textContent = timeLeft;
                 
-                if (timeLeft <= 5) {
+                // Update time taken
+                totalTimeTaken = totalGameTime - timeLeft;
+                timeTakenDisplay.textContent = totalTimeTaken;
+                
+                if (timeLeft <= 10) {
                     timeLeftDisplay.classList.add('warning');
                 }
                 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    endGame();
+                    endGame('timeup');
                 }
             }, 1000);
         }
         
-        function endGame() {
+        function endGameEarly() {
+            if (confirm("Are you sure you want to end the game early? Your progress will be saved.")) {
+                clearInterval(timerInterval);
+                endGame('early');
+            }
+        }
+        
+        function endGame(reason = 'completed') {
+            if (gameEnded) return;
+            
             gameEnded = true;
-            savePlayerData();
+            
+            // Calculate final time taken
+            if (reason === 'timeup') {
+                totalTimeTaken = totalGameTime; // Used all time
+            }
+            
+            savePlayerData(reason);
             
             // Mark player as having played
             const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
@@ -305,8 +341,17 @@
                 localStorage.setItem(`played_${playerKey}`, "true");
             }
             
+            let message = "";
+            if (reason === 'timeup') {
+                message = "Time's up! Game Over! Your final score is: " + score;
+            } else if (reason === 'early') {
+                message = "Game ended early! Your final score is: " + score;
+            } else {
+                message = "Game Completed! Your final score is: " + score;
+            }
+            
             setTimeout(() => {
-                alert("Game Over! Your final score is: " + score);
+                alert(message);
                 document.getElementById("game").style.display = "none";
                 document.querySelector("button[onclick='startGame()']").disabled = false;
             }, 500);
@@ -355,7 +400,7 @@
             if (gameEnded) return;
 
             if (round > maxRounds) {
-                endGame();
+                endGame('completed');
                 return;
             }
 
@@ -616,10 +661,7 @@
             
             // Check if game is over after this round
             if (round > maxRounds) {
-                endGame();
-            } else {
-                // Reset timer for next round
-                startTimer();
+                endGame('completed');
             }
         }
 
@@ -651,13 +693,22 @@
             }
         }
 
-        function savePlayerData() {
+        function savePlayerData(endReason = 'completed') {
             const currentPlayer = JSON.parse(localStorage.getItem("currentPlayer"));
             if (currentPlayer) {
                 currentPlayer.score = score;
+                currentPlayer.timeTaken = totalTimeTaken;
+                currentPlayer.completed = (endReason === 'completed');
+                currentPlayer.endReason = endReason;
+                currentPlayer.timestamp = new Date().toISOString();
+                currentPlayer.gameCode = gameCode;
+                
                 localStorage.setItem("currentPlayer", JSON.stringify(currentPlayer));
                 
-                const playerRef = db.ref('players/' + currentPlayer.name.replace('.', '_'));
+                // Save to Firebase with a unique key that includes timestamp
+                const playerKey = currentPlayer.name.replace(/\./g, '_') + '_' + Date.now();
+                const playerRef = db.ref('gameResults/' + gameCode + '/players/' + playerKey);
+                
                 playerRef.set(currentPlayer)
                     .then(() => console.log('Player data saved to Firebase'))
                     .catch(error => console.error('Error saving data:', error));
