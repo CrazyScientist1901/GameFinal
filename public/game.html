@@ -171,9 +171,9 @@
         </select>
         <button onclick="startGame()">Start Game</button>
         <div class="game-info">
-            <p>Game Code: <strong id="displayGameCode">Loading...</strong></p>
-            <p>Allowed Operations: <span id="displayOperations">Loading...</span></p>
-            <p>Difficulty: <span id="displayDifficulty">Loading...</span>-digit numbers</p>
+            <p>Game Code: <strong id="displayGameCode">-</strong></p>
+            <p>Allowed Operations: <span id="displayOperations">+,-,X,÷</span></p>
+            <p>Difficulty: <span id="displayDifficulty">2</span>-digit numbers</p>
         </div>
         
         <div id="game" style="display: none;">
@@ -207,6 +207,8 @@
     </div>
 
     <script>
+        
+
         let score = 0;
         let round = 1;
         const maxRounds = 10;
@@ -218,7 +220,7 @@
         let timeLeft = 90;
         let totalTimeTaken = 0;
         let gameStartTime = 0;
-        const totalGameTime = 90; // 90 seconds total game time
+        const totalGameTime = 90;
         
         // Game settings
         let allowedOperations = ['+', '-', 'X', '÷'];
@@ -251,14 +253,18 @@
                 return;
             }
 
-            localStorage.setItem("currentPlayer", JSON.stringify({
+            const currentPlayer = {
                 name: playerName,
                 class: playerClass,
                 section: playerSection,
                 score: 0,
                 timeTaken: 0,
-                completed: false
-            }));
+                completed: false,
+                timestamp: new Date().toISOString(),
+                gameCode: gameCode
+            };
+
+            localStorage.setItem("currentPlayer", JSON.stringify(currentPlayer));
 
             document.getElementById("game").style.display = "block";
             
@@ -329,7 +335,7 @@
             
             // Calculate final time taken
             if (reason === 'timeup') {
-                totalTimeTaken = totalGameTime; // Used all time
+                totalTimeTaken = totalGameTime;
             }
             
             savePlayerData(reason);
@@ -358,44 +364,53 @@
         }
         
         function initGame() {
-            const settings = JSON.parse(localStorage.getItem('gameSettings'));
-            gameCode = localStorage.getItem('currentGame');
-            
-            if (!settings || !gameCode) {
-                alert("No game settings found. Please join a game first.");
-                return;
-            }
-            
-            allowedOperations = settings.operations;
-            difficulty = parseInt(settings.difficulty);
-            
-            // Update UI with game info
-            displayGameCode.textContent = gameCode;
-            displayOperations.textContent = allowedOperations.join(', ');
-            displayDifficulty.textContent = difficulty;
-            
-            // Set max number based on difficulty
-            const maxNumber = Math.pow(10, difficulty) - 1;
-            document.getElementById('num1').max = maxNumber;
-            document.getElementById('num2').max = maxNumber;
-            document.getElementById('num3').max = maxNumber;
-            document.getElementById('num4').max = maxNumber;
-            
-            // Monitor game status
-            db.ref('games/' + gameCode).on('value', (snapshot) => {
-                const game = snapshot.val();
-                if (!game || !game.isActive) {
-                    alert("The teacher has ended this game session.");
-                    window.location.href = "student-join.html";
+            try {
+                const settings = JSON.parse(localStorage.getItem('gameSettings'));
+                gameCode = localStorage.getItem('currentGame');
+                
+                if (settings) {
+                    allowedOperations = settings.operations || ['+', '-', 'X', '÷'];
+                    difficulty = parseInt(settings.difficulty) || 2;
                 }
-            });
+                
+                // Update UI with game info
+                displayGameCode.textContent = gameCode || '-';
+                displayOperations.textContent = allowedOperations.join(', ');
+                displayDifficulty.textContent = difficulty;
+                
+                // Set max number based on difficulty
+                const maxNumber = Math.pow(10, difficulty) - 1;
+                document.getElementById('num1').max = maxNumber;
+                document.getElementById('num2').max = maxNumber;
+                document.getElementById('num3').max = maxNumber;
+                document.getElementById('num4').max = maxNumber;
+                
+                // Monitor game status if gameCode exists
+                if (gameCode) {
+                    db.ref('games/' + gameCode).on('value', (snapshot) => {
+                        const game = snapshot.val();
+                        if (!game || !game.isActive) {
+                            alert("The teacher has ended this game session.");
+                            // Redirect to join page if it exists
+                            if (window.location.pathname.includes('student-join.html')) {
+                                window.location.href = "student-join.html";
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Error initializing game:", error);
+                // Set default values
+                displayGameCode.textContent = '-';
+                displayOperations.textContent = allowedOperations.join(', ');
+                displayDifficulty.textContent = difficulty;
+            }
         }
         
         function getRandomNumberInRange(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
                     
-        // Generate numbers based on difficulty
         function generatePuzzle() {
             if (gameEnded) return;
 
@@ -409,27 +424,23 @@
             document.getElementById("checkBtn").disabled = false;
 
             currentOperator = allowedOperations[Math.floor(Math.random() * allowedOperations.length)];
-            if (currentOperator === 'X') currentOperator = '*';
-            document.getElementById("operator").textContent = currentOperator === '*' ? 'X' : currentOperator;
-            if(currentOperator==='÷') currentOperator='/';
-            document.getElementById("operator").textContent = currentOperator === '/' ? '÷' : currentOperator;
+            let displayOperator = currentOperator;
+            if (currentOperator === 'X') displayOperator = '×';
+            if (currentOperator === '÷') displayOperator = '÷';
+            document.getElementById("operator").textContent = displayOperator;
 
             // Clear previous inputs
-            ['num1', 'num2', 'num3', 'num4'].forEach(id => document.getElementById(id).value = '');
-            ['result1', 'result2', 'result3', 'result4'].forEach(id => document.getElementById(id).value = '');
+            ['num1', 'num2', 'num3', 'num4'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            ['result1', 'result2', 'result3', 'result4'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
             document.getElementById("answerBox").textContent = '';
             document.getElementById("answerBox").className = '';
 
             const lowerBound = Math.pow(10, difficulty - 1);
             const upperBound = Math.pow(10, difficulty) - 1;
-            let resultBound = upperBound;
-            
-            // For multiplication, reduce the maximum operand size to prevent huge results
-            let multiplicationOperandBound = upperBound;
-            if (currentOperator === '*') {
-                multiplicationOperandBound = Math.pow(10, Math.ceil(difficulty/2)) - 1;
-                resultBound = upperBound * upperBound;
-            }
 
             let valid = false;
             let attempts = 0;
@@ -438,7 +449,10 @@
             while (!valid && attempts < maxAttempts) {
                 attempts++;
                 
-                switch (currentOperator) {
+                // For calculation, use standard operators
+                const calcOperator = currentOperator === 'X' ? '*' : currentOperator === '÷' ? '/' : currentOperator;
+                
+                switch (calcOperator) {
                     case '+':
                         correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
                         correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
@@ -460,34 +474,28 @@
                         break;
 
                     case '*':
-                        const maxMultiplier = difficulty === 2 ? 9 : Math.pow(10, difficulty - 1) - 1;
-                        correctNum1 = getRandomNumberInRange(1, maxMultiplier);
-                        correctNum2 = getRandomNumberInRange(1, maxMultiplier);
+                        correctNum1 = getRandomNumberInRange(1, 9);
+                        correctNum2 = getRandomNumberInRange(1, 9);
                         result1 = correctNum1 * correctNum2;
 
-                        correctNum3 = getRandomNumberInRange(1, maxMultiplier);
-                        correctNum4 = getRandomNumberInRange(1, maxMultiplier);
+                        correctNum3 = getRandomNumberInRange(1, 9);
+                        correctNum4 = getRandomNumberInRange(1, 9);
                         result2 = correctNum3 * correctNum4;
                         break;
 
                     case '/':
-                        // Ensure we get whole number results
-                        correctNum2 = getRandomNumberInRange(1, upperBound); // Avoid division by zero
-                        result1 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum2));
+                        result1 = getRandomNumberInRange(1, 9);
+                        correctNum2 = getRandomNumberInRange(1, 9);
                         correctNum1 = result1 * correctNum2;
 
-                        correctNum4 = getRandomNumberInRange(1, upperBound); // Avoid division by zero
-                        result2 = getRandomNumberInRange(lowerBound, Math.floor(upperBound / correctNum4));
+                        result2 = getRandomNumberInRange(1, 9);
+                        correctNum4 = getRandomNumberInRange(1, 9);
                         correctNum3 = result2 * correctNum4;
-                        
-                        // Calculate common results for division
-                        result3 = correctNum1 / correctNum3;
-                        result4 = correctNum2 / correctNum4;
                         break;
                 }
 
-                // Common Result Calculations
-                switch (currentOperator) {
+                // Calculate common results
+                switch (calcOperator) {
                     case '+':
                         result3 = correctNum1 + correctNum3;
                         result4 = correctNum2 + correctNum4;
@@ -506,72 +514,51 @@
                         break;
                 }
 
-                // Check if all results are within bounds and valid
-                if (
-                    result1 <= resultBound && 
-                    result2 <= resultBound &&
-                    result3 <= resultBound && 
-                    result4 <= resultBound &&
+                // Validate results
+                const maxResult = Math.pow(10, difficulty * 2);
+                valid = (
+                    result1 >= 0 && result1 <= maxResult &&
+                    result2 >= 0 && result2 <= maxResult &&
+                    result3 >= 0 && result3 <= maxResult &&
+                    result4 >= 0 && result4 <= maxResult &&
                     !isNaN(result1) && !isNaN(result2) && 
                     !isNaN(result3) && !isNaN(result4) &&
-                    (currentOperator !== '/' || 
-                     (correctNum3 !== 0 &&  // Ensure we're not dividing by zero in common results
-                      correctNum4 !== 0))
-                ) {
-                    valid = true;
+                    Number.isFinite(result1) && Number.isFinite(result2) &&
+                    Number.isFinite(result3) && Number.isFinite(result4)
+                );
+
+                if (calcOperator === '/') {
+                    valid = valid && (
+                        correctNum2 !== 0 && 
+                        correctNum4 !== 0 &&
+                        Number.isInteger(result3) && 
+                        Number.isInteger(result4)
+                    );
                 }
             }
 
+            // Fallback to addition if no valid puzzle found
             if (!valid) {
-                // Instead of recursion, just force addition
                 currentOperator = '+';
                 document.getElementById("operator").textContent = '+';
-                // Reset and try again with addition
-                valid = false;
-                attempts = 0;
                 
-                while (!valid && attempts < maxAttempts) {
-                    attempts++;
-                    correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
-                    correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
-                    result1 = correctNum1 + correctNum2;
+                correctNum1 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum2 = getRandomNumberInRange(lowerBound, upperBound);
+                result1 = correctNum1 + correctNum2;
 
-                    correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
-                    correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
-                    result2 = correctNum3 + correctNum4;
+                correctNum3 = getRandomNumberInRange(lowerBound, upperBound);
+                correctNum4 = getRandomNumberInRange(lowerBound, upperBound);
+                result2 = correctNum3 + correctNum4;
 
-                    result3 = correctNum1 + correctNum3;
-                    result4 = correctNum2 + correctNum4;
-
-                   if (!valid && currentOperator === '/') {
-                        currentOperator = '+';
-                        document.getElementById("operator").textContent = '+';
-                        // Reset attempts and let the loop continue with addition
-                        attempts = 0;
-                        continue;
-                    }
-                    if (
-                        result1 <= resultBound && 
-                        result2 <= resultBound &&
-                        result3 <= resultBound && 
-                        result4 <= resultBound &&
-                        !isNaN(result1) && !isNaN(result2) && 
-                        !isNaN(result3) && !isNaN(result4) &&
-                        (currentOperator !== '/' || 
-                         (Number.isInteger(result3) && 
-                          Number.isInteger(result4) &&
-                          correctNum2 !== 0 && 
-                          correctNum4 !== 0))
-                    ) {
-                        valid = true;
-                    }
-                }
+                result3 = correctNum1 + correctNum3;
+                result4 = correctNum2 + correctNum4;
             }
 
-            document.getElementById("result1").value = result1;
-            document.getElementById("result2").value = result2;
-            document.getElementById("result3").value = Number.isInteger(result3) ? result3 : result3.toFixed(2);
-            document.getElementById("result4").value = Number.isInteger(result4) ? result4 : result4.toFixed(2);
+            // Display results
+            document.getElementById("result1").value = Math.round(result1 * 100) / 100;
+            document.getElementById("result2").value = Math.round(result2 * 100) / 100;
+            document.getElementById("result3").value = Math.round(result3 * 100) / 100;
+            document.getElementById("result4").value = Math.round(result4 * 100) / 100;
         }
                       
         function checkResults() {
@@ -587,11 +574,13 @@
                 return;
             }
             
-            // Calculate what the results should be based on user's numbers
+            // Use standard operators for calculation
+            const calcOperator = currentOperator === 'X' ? '*' : currentOperator === '÷' ? '/' : currentOperator;
+            
             let userResult1, userResult2, userResult3, userResult4;
             let operationsValid = true;
             
-            switch(currentOperator) {
+            switch(calcOperator) {
                 case '+':
                     userResult1 = num1 + num2;
                     userResult2 = num3 + num4;
@@ -604,13 +593,13 @@
                     userResult3 = num1 - num3;
                     userResult4 = num2 - num4;
                     break;
-                case 'X':
+                case '*':
                     userResult1 = num1 * num2;
                     userResult2 = num3 * num4;
                     userResult3 = num1 * num3;
                     userResult4 = num2 * num4;
                     break;
-                case '÷':
+                case '/':
                     if (num2 === 0 || num4 === 0) {
                         operationsValid = false;
                     } else {
@@ -623,11 +612,12 @@
             }
             
             // Compare calculated results with expected results
+            const epsilon = 0.001;
             const resultsMatch = operationsValid && (
-                Math.abs(userResult1 - result1) < 0.0001 &&
-                Math.abs(userResult2 - result2) < 0.0001 &&
-                Math.abs(userResult3 - result3) < 0.0001 &&
-                Math.abs(userResult4 - result4) < 0.0001
+                Math.abs(userResult1 - result1) < epsilon &&
+                Math.abs(userResult2 - result2) < epsilon &&
+                Math.abs(userResult3 - result3) < epsilon &&
+                Math.abs(userResult4 - result4) < epsilon
             );
             
             if (resultsMatch) {
@@ -636,7 +626,6 @@
                 answerBox.innerText = "Correct!";
                 answerBox.className = "correct";
             } else {
-                // Check if the user found a valid alternative solution
                 const isAlternativeSolution = checkAlternativeSolution(num1, num2, num3, num4);
                 
                 if (isAlternativeSolution) {
@@ -645,12 +634,13 @@
                     answerBox.innerText = "Correct!";
                     answerBox.className = "correct";
                 } else {
+                    const displayOp = currentOperator === 'X' ? '×' : currentOperator === '÷' ? '÷' : currentOperator;
                     answerBox.innerHTML = `Incorrect!<br>Your numbers don't produce all the required results.<br>
                         One possible solution:<br>
-                        ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum2} = ${result1}<br>
-                        ${correctNum3} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result2}<br>
-                        ${correctNum1} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum3} = ${result3}<br>
-                        ${correctNum2} ${currentOperator === '*' ? 'X' : currentOperator} ${correctNum4} = ${result4}`;
+                        ${correctNum1} ${displayOp} ${correctNum2} = ${result1}<br>
+                        ${correctNum3} ${displayOp} ${correctNum4} = ${result2}<br>
+                        ${correctNum1} ${displayOp} ${correctNum3} = ${result3}<br>
+                        ${correctNum2} ${displayOp} ${correctNum4} = ${result4}`;
                     answerBox.className = "wrong";
                 }
             }
@@ -659,36 +649,29 @@
             document.getElementById("checkBtn").disabled = true;
             document.getElementById("generateBtn").disabled = false;
             
-            // Check if game is over after this round
             if (round > maxRounds) {
                 endGame('completed');
             }
         }
 
-        // New helper function to check for alternative valid solutions
         function checkAlternativeSolution(num1, num2, num3, num4) {
-            // Check if all equations hold true with these numbers
-            const op = currentOperator;
-            const epsilon = 0.0001; // For floating point comparison
+            const calcOperator = currentOperator === 'X' ? '*' : currentOperator === '÷' ? '/' : currentOperator;
+            const epsilon = 0.001;
             
-            // Check all four equations
-            const eq1 = Math.abs(calculate(num1, num2, op) - result1) < epsilon;
-            const eq2 = Math.abs(calculate(num3, num4, op) - result2) < epsilon;
-            const eq3 = Math.abs(calculate(num1, num3, op) - result3) < epsilon;
-            const eq4 = Math.abs(calculate(num2, num4, op) - result4) < epsilon;
+            const eq1 = Math.abs(calculate(num1, num2, calcOperator) - result1) < epsilon;
+            const eq2 = Math.abs(calculate(num3, num4, calcOperator) - result2) < epsilon;
+            const eq3 = Math.abs(calculate(num1, num3, calcOperator) - result3) < epsilon;
+            const eq4 = Math.abs(calculate(num2, num4, calcOperator) - result4) < epsilon;
             
             return eq1 && eq2 && eq3 && eq4;
         }
 
-        // Helper function to perform the operation
         function calculate(a, b, op) {
             switch(op) {
                 case '+': return a + b;
                 case '-': return a - b;
-                case '*': 
-                case 'X': return a * b;
-                case '/':
-                case '÷': return b !== 0 ? a / b : NaN;
+                case '*': return a * b;
+                case '/': return b !== 0 ? a / b : NaN;
                 default: return NaN;
             }
         }
@@ -705,13 +688,26 @@
                 
                 localStorage.setItem("currentPlayer", JSON.stringify(currentPlayer));
                 
-                // Save to Firebase with a unique key that includes timestamp
-                const playerKey = currentPlayer.name.replace(/\./g, '_') + '_' + Date.now();
-                const playerRef = db.ref('gameResults/' + gameCode + '/players/' + playerKey);
+                console.log("Saving player data:", currentPlayer);
                 
-                playerRef.set(currentPlayer)
-                    .then(() => console.log('Player data saved to Firebase'))
-                    .catch(error => console.error('Error saving data:', error));
+                // Save to Firebase
+                try {
+                    const playerKey = currentPlayer.name.replace(/\./g, '_') + '_' + Date.now();
+                    const playerRef = db.ref('gameResults/' + (gameCode || 'default') + '/players/' + playerKey);
+                    
+                    playerRef.set(currentPlayer)
+                        .then(() => {
+                            console.log('Player data successfully saved to Firebase');
+                            alert('Your results have been saved successfully!');
+                        })
+                        .catch(error => {
+                            console.error('Error saving data to Firebase:', error);
+                            alert('Error saving results. Please check your connection.');
+                        });
+                } catch (error) {
+                    console.error('Firebase error:', error);
+                    alert('Error connecting to database.');
+                }
             }
         }
         
@@ -721,7 +717,10 @@
                 initGame();
             } catch (error) {
                 console.error("Error initializing game:", error);
-                alert("Error initializing game. Please check your connection and try again.");
+                // Set default values
+                displayGameCode.textContent = '-';
+                displayOperations.textContent = allowedOperations.join(', ');
+                displayDifficulty.textContent = difficulty;
             }
         };
     </script>
