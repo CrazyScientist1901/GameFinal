@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Math Game</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="firebase.js"></script>
     <style>
@@ -207,7 +207,7 @@
     </div>
 
     <script>
-        
+    
 
         let score = 0;
         let round = 1;
@@ -690,14 +690,17 @@
                 
                 console.log("Saving player data:", currentPlayer);
                 
-                // Save to Firebase
+                // Save to Firebase under "players" node
                 try {
+                    // Create a unique key for the player result
                     const playerKey = currentPlayer.name.replace(/\./g, '_') + '_' + Date.now();
-                    const playerRef = db.ref('gameResults/' + (gameCode || 'default') + '/players/' + playerKey);
+                    
+                    // Save under "players" node instead of "gameResults"
+                    const playerRef = db.ref('players/' + playerKey);
                     
                     playerRef.set(currentPlayer)
                         .then(() => {
-                            console.log('Player data successfully saved to Firebase');
+                            console.log('Player data successfully saved to Firebase under "players" node');
                             alert('Your results have been saved successfully!');
                         })
                         .catch(error => {
