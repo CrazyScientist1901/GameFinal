@@ -6,6 +6,7 @@
     <title>Math Game</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="firebase.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -199,20 +200,7 @@
     </div>
 
     <script>
-        // Firebase configuration (should be in firebase.js)
-        const firebaseConfig = {
-            apiKey: "your-api-key",
-            authDomain: "your-auth-domain",
-            databaseURL: "your-database-url",
-            projectId: "your-project-id",
-            storageBucket: "your-storage-bucket",
-            messagingSenderId: "your-sender-id",
-            appId: "your-app-id"
-        };
         
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
 
         let score = 0;
         let round = 1;
