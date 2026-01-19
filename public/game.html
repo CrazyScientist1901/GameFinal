@@ -107,20 +107,11 @@
             background: #f0f8ff;
             border-radius: 5px;
         }
-        .timer {
-            font-size: 20px;
-            font-weight: bold;
-            color: #e74c3c;
-            margin: 10px 0;
-        }
-        .warning {
-            color: #e74c3c;
-            font-weight: bold;
-        }
         .time-info {
-            font-size: 14px;
-            color: #666;
-            margin: 5px 0;
+            font-size: 18px;
+            font-weight: bold;
+            color: #4A90E2;
+            margin: 10px 0;
         }
         @media (max-width: 480px) {
             .container {
@@ -177,9 +168,6 @@
         </div>
         
         <div id="game" style="display: none;">
-            <div class="timer">
-                Time Left: <span id="timeLeft">90</span> seconds
-            </div>
             <p class="time-info">Time Taken: <span id="timeTaken">0</span> seconds</p>
             <p>Round: <span id="round">1</span> / 10</p>
             <div class="parent">
@@ -207,8 +195,6 @@
     </div>
 
     <script>
-    
-
         let score = 0;
         let round = 1;
         const maxRounds = 10;
@@ -217,10 +203,8 @@
         let result1, result2, result3, result4;
         let gameEnded = false;
         let timerInterval;
-        let timeLeft = 90;
         let totalTimeTaken = 0;
         let gameStartTime = 0;
-        const totalGameTime = 90;
         
         // Game settings
         let allowedOperations = ['+', '-', 'X', '÷'];
@@ -231,7 +215,6 @@
         const displayGameCode = document.getElementById('displayGameCode');
         const displayOperations = document.getElementById('displayOperations');
         const displayDifficulty = document.getElementById('displayDifficulty');
-        const timeLeftDisplay = document.getElementById('timeLeft');
         const timeTakenDisplay = document.getElementById('timeTaken');
 
         function startGame() {
@@ -286,44 +269,35 @@
             document.getElementById("endGameBtn").disabled = false;
             document.querySelector("button[onclick='startGame()']").disabled = true;
             
-            // Start the timer
-            startTimer();
+            // Start the timer (only time taken counter)
+            startTimeCounter();
             
             // Generate first puzzle
             generatePuzzle();
         }
         
-        function startTimer() {
-            timeLeft = totalGameTime;
-            timeLeftDisplay.textContent = timeLeft;
-            timeLeftDisplay.classList.remove('warning');
+        function startTimeCounter() {
+            gameStartTime = Date.now();
             
             if (timerInterval) {
                 clearInterval(timerInterval);
             }
             
             timerInterval = setInterval(() => {
-                timeLeft--;
-                timeLeftDisplay.textContent = timeLeft;
-                
-                // Update time taken
-                totalTimeTaken = totalGameTime - timeLeft;
+                totalTimeTaken = Math.floor((Date.now() - gameStartTime) / 1000);
                 timeTakenDisplay.textContent = totalTimeTaken;
-                
-                if (timeLeft <= 10) {
-                    timeLeftDisplay.classList.add('warning');
-                }
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    endGame('timeup');
-                }
             }, 1000);
+        }
+        
+        function stopTimeCounter() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
         }
         
         function endGameEarly() {
             if (confirm("Are you sure you want to end the game early? Your progress will be saved.")) {
-                clearInterval(timerInterval);
+                stopTimeCounter();
                 endGame('early');
             }
         }
@@ -332,10 +306,11 @@
             if (gameEnded) return;
             
             gameEnded = true;
+            stopTimeCounter();
             
             // Calculate final time taken
-            if (reason === 'timeup') {
-                totalTimeTaken = totalGameTime;
+            if (reason !== 'completed') {
+                totalTimeTaken = Math.floor((Date.now() - gameStartTime) / 1000);
             }
             
             savePlayerData(reason);
@@ -348,9 +323,7 @@
             }
             
             let message = "";
-            if (reason === 'timeup') {
-                message = "Time's up! Game Over! Your final score is: " + score;
-            } else if (reason === 'early') {
+            if (reason === 'early') {
                 message = "Game ended early! Your final score is: " + score;
             } else {
                 message = "Game Completed! Your final score is: " + score;
